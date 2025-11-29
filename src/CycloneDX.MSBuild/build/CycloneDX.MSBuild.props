@@ -98,6 +98,8 @@
     -->
     <CycloneDxOutputPath Condition="'$(CycloneDxOutputFormat)' == 'json'">$(CycloneDxOutputDirectory)$(CycloneDxOutputFilename).json</CycloneDxOutputPath>
     <CycloneDxOutputPath Condition="'$(CycloneDxOutputFormat)' == 'xml'">$(CycloneDxOutputDirectory)$(CycloneDxOutputFilename).xml</CycloneDxOutputPath>
+    <!-- Fallback: If output path is still unset, default to .json -->
+    <CycloneDxOutputPath Condition="'$(CycloneDxOutputPath)' == ''">$(CycloneDxOutputDirectory)$(CycloneDxOutputFilename).json</CycloneDxOutputPath>
 
     <!--
       Internal: Flag to track if tool manifest exists
