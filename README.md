@@ -254,7 +254,7 @@ dotnet build tests/Integration.Tests/SimpleProject/SimpleProject.csproj
 | Feature | Microsoft.Sbom.Targets | CycloneDX.MSBuild |
 |---------|------------------------|-------------------|
 | **SBOM Format** | SPDX 2.2 | CycloneDX 1.2-1.6 |
-| **Tool** | Microsoft.Sbom.Tool (embedded) | CycloneDX .NET tool (dependency) |
+| **Tool** | Microsoft.Sbom.Tool (embedded) | CycloneDX .NET tool (local tool, installed on demand) |
 | **Build Support** | ✅ | ✅ |
 | **Pack Support** | ✅ | ✅ |
 | **Publish Support** | ❌ | ⏳ Planned |
