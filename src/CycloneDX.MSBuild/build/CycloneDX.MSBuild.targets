@@ -85,7 +85,7 @@
     <Message Importance="normal" Text="[CycloneDX] Installing CycloneDX tool version $(CycloneDxToolVersion)..." />
 
     <Exec
-      Command="dotnet tool install --local CycloneDX --version $(CycloneDxToolVersion) --create-manifest-if-needed"
+      Command="dotnet tool install --local CycloneDX --version $(CycloneDxToolVersion)"
       WorkingDirectory="$(MSBuildProjectDirectory)"
       ContinueOnError="true"
       StandardOutputImportance="low"
