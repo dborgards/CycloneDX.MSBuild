@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    CycloneDX.MSBuild Multi-Targeting Targets
+
+    This file is imported when building projects with multiple target frameworks.
+    For multi-targeting projects, we only want to generate the SBOM once (not per framework).
+
+    The SBOM generation is deferred to the outer build that coordinates all inner builds.
+  -->
+
+  <!-- Disable per-framework SBOM generation for inner builds -->
+  <PropertyGroup Condition="'$(TargetFramework)' != ''">
+    <GenerateCycloneDxSbom>false</GenerateCycloneDxSbom>
+  </PropertyGroup>
+
+  <!-- Import standard targets only for the outer build -->
+  <Import Project="..\build\CycloneDX.MSBuild.targets" Condition="'$(TargetFramework)' == ''" />
+
+</Project>

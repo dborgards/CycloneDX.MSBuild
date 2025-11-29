@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    CycloneDX.MSBuild Multi-Targeting Props
+
+    This file is imported when building projects with multiple target frameworks.
+    It imports the standard props file to ensure consistent behavior.
+  -->
+
+  <Import Project="..\build\CycloneDX.MSBuild.props" />
+
+</Project>

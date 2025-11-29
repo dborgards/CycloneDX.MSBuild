@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Package Identity -->
+    <PackageId>CycloneDX.MSBuild</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>CycloneDX Community</Authors>
+    <Company>CycloneDX</Company>
+
+    <!-- Package Description -->
+    <Title>CycloneDX MSBuild Targets</Title>
+    <Description>MSBuild targets for automatic CycloneDX SBOM generation during build and pack operations. Integrates the CycloneDX .NET tool seamlessly into your build pipeline.</Description>
+    <PackageTags>cyclonedx;sbom;msbuild;targets;security;supply-chain;bom</PackageTags>
+    <PackageProjectUrl>https://github.com/CycloneDX/cyclonedx-msbuild</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/CycloneDX/cyclonedx-msbuild</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <!-- Build Configuration -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NoWarn>$(NoWarn);NU5128</NoWarn><!-- Suppress warning about missing lib folder -->
+
+    <!-- Package Metadata -->
+    <PackageReleaseNotes>
+      Initial release:
+      - Automatic SBOM generation during build
+      - Support for dotnet build and dotnet pack
+      - Configurable output format (JSON/XML)
+      - Integration with CycloneDX .NET tool
+    </PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Include build files in package -->
+    <None Include="build\**" Pack="true" PackagePath="build\" />
+    <None Include="buildMultiTargeting\**" Pack="true" PackagePath="buildMultiTargeting\" />
+
+    <!-- Include README -->
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!-- Package validation and security -->
+  <PropertyGroup>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+</Project>

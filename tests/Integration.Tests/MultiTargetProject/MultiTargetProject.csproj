@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Multi-targeting: .NET 6, .NET 8, and .NET Standard 2.0 -->
+    <TargetFrameworks>net6.0;net8.0;netstandard2.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reference the local CycloneDX.MSBuild package -->
+    <ProjectReference Include="..\..\..\src\CycloneDX.MSBuild\CycloneDX.MSBuild.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+  <!-- Override SBOM output directory to avoid per-framework generation -->
+  <PropertyGroup>
+    <CycloneDxOutputDirectory>$(MSBuildProjectDirectory)/bin/sbom/</CycloneDxOutputDirectory>
+  </PropertyGroup>
+
+</Project>
