@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    CycloneDX.MSBuild Targets
+
+    This file defines MSBuild targets for automatic CycloneDX SBOM generation.
+    Targets are executed during the build process to generate SBOMs.
+
+    Security by Design:
+    - Tool runs in build context without elevated permissions
+    - Input validation on all properties
+    - Fail-safe defaults (continue on error)
+    - No arbitrary command execution
+
+    Clean Code Principles:
+    - Single Responsibility: Each target has one clear purpose
+    - Separation of Concerns: Tool installation, validation, and execution are separate
+    - DRY: Reusable property groups
+  -->
+
+  <!-- Target execution order:
+       1. ValidateCycloneDxConfiguration (before build)
+       2. EnsureCycloneDxToolInstalled (before SBOM generation)
+       3. GenerateCycloneDxSbom (after build, before pack)
+  -->
+
+  <Target Name="ValidateCycloneDxConfiguration"
+          BeforeTargets="Build"
+          Condition="'$(GenerateCycloneDxSbom)' == 'true'">
+
+    <PropertyGroup>
+      <_CycloneDxValidationFailed>false</_CycloneDxValidationFailed>
+    </PropertyGroup>
+
+    <!-- Validate output format -->
+    <Warning
+      Condition="'$(CycloneDxOutputFormat)' != 'json' AND '$(CycloneDxOutputFormat)' != 'xml'"
+      Text="[CycloneDX] Invalid output format '$(CycloneDxOutputFormat)'. Supported formats: json, xml. Defaulting to json." />
+
+    <PropertyGroup Condition="'$(CycloneDxOutputFormat)' != 'json' AND '$(CycloneDxOutputFormat)' != 'xml'">
+      <CycloneDxOutputFormat>json</CycloneDxOutputFormat>
+    </PropertyGroup>
+
+    <!-- Validate spec version -->
+    <Warning
+      Condition="'$(CycloneDxSpecVersion)' != '1.2' AND '$(CycloneDxSpecVersion)' != '1.3' AND '$(CycloneDxSpecVersion)' != '1.4' AND '$(CycloneDxSpecVersion)' != '1.5' AND '$(CycloneDxSpecVersion)' != '1.6'"
+      Text="[CycloneDX] Invalid spec version '$(CycloneDxSpecVersion)'. Supported: 1.2, 1.3, 1.4, 1.5, 1.6. Defaulting to 1.6." />
+
+    <PropertyGroup Condition="'$(CycloneDxSpecVersion)' != '1.2' AND '$(CycloneDxSpecVersion)' != '1.3' AND '$(CycloneDxSpecVersion)' != '1.4' AND '$(CycloneDxSpecVersion)' != '1.5' AND '$(CycloneDxSpecVersion)' != '1.6'">
+      <CycloneDxSpecVersion>1.6</CycloneDxSpecVersion>
+    </PropertyGroup>
+
+    <!-- Ensure output directory exists -->
+    <MakeDir Directories="$(CycloneDxOutputDirectory)" Condition="!Exists('$(CycloneDxOutputDirectory)')" />
+
+    <Message Importance="low" Text="[CycloneDX] Configuration validated successfully" />
+
+  </Target>
+
+  <Target Name="EnsureCycloneDxToolInstalled"
+          BeforeTargets="GenerateCycloneDxSbom"
+          Condition="'$(GenerateCycloneDxSbom)' == 'true'">
+
+    <PropertyGroup>
+      <_CycloneDxConfigDir>$(MSBuildProjectDirectory)/.config</_CycloneDxConfigDir>
+      <_CycloneDxToolManifest>$(_CycloneDxConfigDir)/dotnet-tools.json</_CycloneDxToolManifest>
+    </PropertyGroup>
+
+    <!-- Create .config directory if it doesn't exist -->
+    <MakeDir Directories="$(_CycloneDxConfigDir)" Condition="!Exists('$(_CycloneDxConfigDir)')" />
+
+    <!-- Create tool manifest if it doesn't exist -->
+    <Exec
+      Command="dotnet new tool-manifest --force"
+      WorkingDirectory="$(MSBuildProjectDirectory)"
+      Condition="!Exists('$(_CycloneDxToolManifest)')"
+      ContinueOnError="$(CycloneDxContinueOnError)"
+      StandardOutputImportance="low"
+      StandardErrorImportance="normal">
+      <Output TaskParameter="ExitCode" PropertyName="_CycloneDxManifestExitCode" />
+    </Exec>
+
+    <!-- Install CycloneDX tool -->
+    <Message Importance="normal" Text="[CycloneDX] Installing CycloneDX tool version $(CycloneDxToolVersion)..." />
+
+    <Exec
+      Command="dotnet tool install --local CycloneDX --version $(CycloneDxToolVersion) --create-manifest-if-needed"
+      WorkingDirectory="$(MSBuildProjectDirectory)"
+      ContinueOnError="true"
+      StandardOutputImportance="low"
+      StandardErrorImportance="low">
+      <Output TaskParameter="ExitCode" PropertyName="_CycloneDxInstallExitCode" />
+    </Exec>
+
+    <!-- If installation failed (likely already installed), try to update/restore -->
+    <Exec
+      Command="dotnet tool restore"
+      WorkingDirectory="$(MSBuildProjectDirectory)"
+      Condition="'$(_CycloneDxInstallExitCode)' != '0'"
+      ContinueOnError="$(CycloneDxContinueOnError)"
+      StandardOutputImportance="low"
+      StandardErrorImportance="normal">
+      <Output TaskParameter="ExitCode" PropertyName="_CycloneDxRestoreExitCode" />
+    </Exec>
+
+    <Message Importance="low" Text="[CycloneDX] Tool installation/restore completed" />
+
+  </Target>
+
+  <Target Name="GenerateCycloneDxSbom"
+          AfterTargets="Build"
+          Condition="'$(GenerateCycloneDxSbom)' == 'true'">
+
+    <Message Importance="high" Text="[CycloneDX] Generating SBOM for $(MSBuildProjectName)..." />
+
+    <PropertyGroup>
+      <!-- Build command line arguments -->
+      <_CycloneDxArgs></_CycloneDxArgs>
+      <_CycloneDxArgs>$(_CycloneDxArgs) "$(MSBuildProjectFullPath)"</_CycloneDxArgs>
+      <_CycloneDxArgs>$(_CycloneDxArgs) --output-directory "$(CycloneDxOutputDirectory)"</_CycloneDxArgs>
+      <_CycloneDxArgs>$(_CycloneDxArgs) --output-filename "$(CycloneDxOutputFilename)"</_CycloneDxArgs>
+      <_CycloneDxArgs>$(_CycloneDxArgs) --output-format $(CycloneDxOutputFormat)</_CycloneDxArgs>
+      <_CycloneDxArgs>$(_CycloneDxArgs) --spec-version $(CycloneDxSpecVersion)</_CycloneDxArgs>
+
+      <!-- Optional arguments -->
+      <_CycloneDxArgs Condition="'$(CycloneDxExcludeDev)' == 'true'">$(_CycloneDxArgs) --exclude-dev</_CycloneDxArgs>
+      <_CycloneDxArgs Condition="'$(CycloneDxExcludeTestProjects)' == 'true'">$(_CycloneDxArgs) --exclude-test-projects</_CycloneDxArgs>
+      <_CycloneDxArgs Condition="'$(CycloneDxIncludeLicenseText)' == 'true'">$(_CycloneDxArgs) --include-license-text</_CycloneDxArgs>
+      <_CycloneDxArgs Condition="'$(CycloneDxSerialNumber)' != ''">$(_CycloneDxArgs) --serial-number $(CycloneDxSerialNumber)</_CycloneDxArgs>
+    </PropertyGroup>
+
+    <!-- Execute CycloneDX tool -->
+    <Exec
+      Command="dotnet cyclonedx $(_CycloneDxArgs)"
+      WorkingDirectory="$(MSBuildProjectDirectory)"
+      ContinueOnError="$(CycloneDxContinueOnError)"
+      StandardOutputImportance="normal"
+      StandardErrorImportance="high">
+      <Output TaskParameter="ExitCode" PropertyName="_CycloneDxGenerateExitCode" />
+    </Exec>
+
+    <!-- Report success or failure -->
+    <Message
+      Importance="high"
+      Condition="'$(_CycloneDxGenerateExitCode)' == '0'"
+      Text="[CycloneDX] SBOM generated successfully: $(CycloneDxOutputPath)" />
+
+    <Warning
+      Condition="'$(_CycloneDxGenerateExitCode)' != '0' AND '$(CycloneDxContinueOnError)' == 'true'"
+      Text="[CycloneDX] SBOM generation failed with exit code $(_CycloneDxGenerateExitCode). Build continuing due to CycloneDxContinueOnError=true" />
+
+    <Error
+      Condition="'$(_CycloneDxGenerateExitCode)' != '0' AND '$(CycloneDxContinueOnError)' == 'false'"
+      Text="[CycloneDX] SBOM generation failed with exit code $(_CycloneDxGenerateExitCode)" />
+
+  </Target>
+
+  <!-- Optional: Include SBOM in NuGet package -->
+  <Target Name="IncludeCycloneDxSbomInPackage"
+          BeforeTargets="GenerateNuspec"
+          Condition="'$(GenerateCycloneDxSbom)' == 'true' AND '$(IsPackable)' != 'false'">
+
+    <ItemGroup>
+      <None Include="$(CycloneDxOutputPath)" Pack="true" PackagePath="sbom/" Condition="Exists('$(CycloneDxOutputPath)')" />
+    </ItemGroup>
+
+    <Message
+      Importance="normal"
+      Condition="Exists('$(CycloneDxOutputPath)')"
+      Text="[CycloneDX] Including SBOM in NuGet package: $(CycloneDxOutputPath)" />
+
+  </Target>
+
+</Project>

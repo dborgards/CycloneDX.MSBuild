@@ -1,0 +1,29 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Source code
+*.cs text diff=csharp
+*.csproj text diff=csharp
+*.sln text eol=crlf
+
+# MSBuild files
+*.props text
+*.targets text
+*.nuspec text
+
+# Documentation
+*.md text
+*.txt text
+
+# Scripts
+*.sh text eol=lf
+*.ps1 text eol=crlf
+
+# JSON files
+*.json text
+
+# Binary files
+*.dll binary
+*.exe binary
+*.nupkg binary
+*.snk binary

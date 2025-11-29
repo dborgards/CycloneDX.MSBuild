@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    CycloneDX.MSBuild Configuration Properties
+
+    This file defines MSBuild properties that control CycloneDX SBOM generation.
+    Users can override these properties in their project files or Directory.Build.props.
+  -->
+
+  <PropertyGroup Label="CycloneDX Core Settings">
+
+    <!--
+      Enable/Disable SBOM generation
+      Set to 'false' to disable SBOM generation for specific projects
+    -->
+    <GenerateCycloneDxSbom Condition="'$(GenerateCycloneDxSbom)' == ''">true</GenerateCycloneDxSbom>
+
+    <!--
+      Continue build on SBOM generation failure
+      Set to 'false' to fail the build if SBOM generation fails
+    -->
+    <CycloneDxContinueOnError Condition="'$(CycloneDxContinueOnError)' == ''">true</CycloneDxContinueOnError>
+
+  </PropertyGroup>
+
+  <PropertyGroup Label="CycloneDX Output Configuration">
+
+    <!--
+      Output format: json, xml, or spdx-json
+      Default: json
+    -->
+    <CycloneDxOutputFormat Condition="'$(CycloneDxOutputFormat)' == ''">json</CycloneDxOutputFormat>
+
+    <!--
+      Output directory for generated SBOM
+      Default: $(OutputPath) (e.g., bin/Debug/net8.0/)
+    -->
+    <CycloneDxOutputDirectory Condition="'$(CycloneDxOutputDirectory)' == ''">$(OutputPath)</CycloneDxOutputDirectory>
+
+    <!--
+      Output filename (without extension)
+      Default: bom (results in bom.json or bom.xml)
+    -->
+    <CycloneDxOutputFilename Condition="'$(CycloneDxOutputFilename)' == ''">bom</CycloneDxOutputFilename>
+
+  </PropertyGroup>
+
+  <PropertyGroup Label="CycloneDX Tool Configuration">
+
+    <!--
+      CycloneDX tool version to use
+      This should match a valid NuGet package version of 'CycloneDX'
+    -->
+    <CycloneDxToolVersion Condition="'$(CycloneDxToolVersion)' == ''">5.5.0</CycloneDxToolVersion>
+
+    <!--
+      CycloneDX specification version
+      Supported: 1.2, 1.3, 1.4, 1.5, 1.6
+    -->
+    <CycloneDxSpecVersion Condition="'$(CycloneDxSpecVersion)' == ''">1.6</CycloneDxSpecVersion>
+
+  </PropertyGroup>
+
+  <PropertyGroup Label="CycloneDX Advanced Options">
+
+    <!--
+      Exclude development dependencies from SBOM
+      Default: false
+    -->
+    <CycloneDxExcludeDev Condition="'$(CycloneDxExcludeDev)' == ''">false</CycloneDxExcludeDev>
+
+    <!--
+      Exclude test projects from SBOM
+      Default: false
+    -->
+    <CycloneDxExcludeTestProjects Condition="'$(CycloneDxExcludeTestProjects)' == ''">false</CycloneDxExcludeTestProjects>
+
+    <!--
+      Include license text in SBOM
+      Default: false (only license IDs)
+    -->
+    <CycloneDxIncludeLicenseText Condition="'$(CycloneDxIncludeLicenseText)' == ''">false</CycloneDxIncludeLicenseText>
+
+    <!--
+      Set SBOM serial number (UUID)
+      Leave empty for auto-generation
+    -->
+    <CycloneDxSerialNumber Condition="'$(CycloneDxSerialNumber)' == ''"></CycloneDxSerialNumber>
+
+  </PropertyGroup>
+
+  <PropertyGroup Label="CycloneDX Internal Properties">
+
+    <!--
+      Internal: Full output path for SBOM file
+      Constructed from directory, filename, and format
+    -->
+    <CycloneDxOutputPath Condition="'$(CycloneDxOutputFormat)' == 'json'">$(CycloneDxOutputDirectory)$(CycloneDxOutputFilename).json</CycloneDxOutputPath>
+    <CycloneDxOutputPath Condition="'$(CycloneDxOutputFormat)' == 'xml'">$(CycloneDxOutputDirectory)$(CycloneDxOutputFilename).xml</CycloneDxOutputPath>
+
+    <!--
+      Internal: Flag to track if tool manifest exists
+    -->
+    <CycloneDxToolManifestPath>$(MSBuildProjectDirectory)/.config/dotnet-tools.json</CycloneDxToolManifestPath>
+
+  </PropertyGroup>
+
+</Project>

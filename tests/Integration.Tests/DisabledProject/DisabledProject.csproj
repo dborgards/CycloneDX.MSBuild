@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <!-- Explicitly disable SBOM generation for this project -->
+  <PropertyGroup>
+    <GenerateCycloneDxSbom>false</GenerateCycloneDxSbom>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\CycloneDX.MSBuild\CycloneDX.MSBuild.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+
+</Project>
