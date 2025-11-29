@@ -257,7 +257,7 @@ dotnet build tests/Integration.Tests/SimpleProject/SimpleProject.csproj
 | **Tool** | Microsoft.Sbom.Tool (embedded) | CycloneDX .NET tool (dependency) |
 | **Build Support** | ✅ | ✅ |
 | **Pack Support** | ✅ | ✅ |
-| **Publish Support** | ❌ | 🚧 Planned |
+| **Publish Support** | ❌ | ⏳ Planned |
 | **Multi-Targeting** | ✅ | ✅ |
 | **Development Dependency** | ✅ | ✅ |
 
