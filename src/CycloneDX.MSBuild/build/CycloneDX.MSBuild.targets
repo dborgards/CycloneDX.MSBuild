@@ -72,7 +72,7 @@
 
     <!-- Create tool manifest if it doesn't exist -->
     <Exec
-      Command="dotnet new tool-manifest --force"
+      Command="dotnet new tool-manifest"
       WorkingDirectory="$(MSBuildProjectDirectory)"
       Condition="!Exists('$(_CycloneDxToolManifest)')"
       ContinueOnError="$(CycloneDxContinueOnError)"
