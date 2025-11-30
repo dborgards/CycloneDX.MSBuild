@@ -14,7 +14,7 @@
     <PackageProjectUrl>https://github.com/CycloneDX/cyclonedx-msbuild</PackageProjectUrl>
     <RepositoryUrl>https://github.com/CycloneDX/cyclonedx-msbuild</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <!-- Build Configuration -->

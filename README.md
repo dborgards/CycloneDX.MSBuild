@@ -1,6 +1,6 @@
 # CycloneDX.MSBuild
 
-[![License](https://img.shields.io/badge/license-Apache%202.0-brightgreen.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 [![NuGet](https://img.shields.io/nuget/v/CycloneDX.MSBuild.svg)](https://www.nuget.org/packages/CycloneDX.MSBuild/)
 
 MSBuild targets for automatic **CycloneDX SBOM** (Software Bill of Materials) generation during build and pack operations. Seamlessly integrates the [CycloneDX .NET tool](https://github.com/CycloneDX/cyclonedx-dotnet) into your build pipeline.
@@ -274,7 +274,7 @@ Contributions are welcome! Please feel free to submit issues, feature requests, 
 
 ## 📄 License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🔗 Related Projects
 
