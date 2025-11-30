@@ -60,7 +60,7 @@ SBOMs are generated automatically:
 
 ### CycloneDX Specification Versions
 
-Supports CycloneDX spec versions: `1.2`, `1.3`, `1.4`, `1.5`, `1.6` (default)
+The tool automatically uses the latest CycloneDX specification version supported by the installed tool version (typically 1.6).
 
 ## ⚙️ Configuration
 
@@ -109,15 +109,6 @@ All configuration is done via MSBuild properties. Set them in your `.csproj`, `D
 </PropertyGroup>
 ```
 
-#### Specification Version
-
-```xml
-<PropertyGroup>
-  <!-- CycloneDX spec version: 1.2, 1.3, 1.4, 1.5, or 1.6 (default) -->
-  <CycloneDxSpecVersion>1.5</CycloneDxSpecVersion>
-</PropertyGroup>
-```
-
 ### Advanced Options
 
 #### Exclude Dependencies
@@ -132,21 +123,25 @@ All configuration is done via MSBuild properties. Set them in your `.csproj`, `D
 </PropertyGroup>
 ```
 
-#### License Information
+#### Serial Number Control
 
 ```xml
 <PropertyGroup>
-  <!-- Include full license text (default: false, only IDs) -->
-  <CycloneDxIncludeLicenseText>true</CycloneDxIncludeLicenseText>
+  <!-- Disable auto-generated SBOM serial number -->
+  <CycloneDxDisableSerialNumber>true</CycloneDxDisableSerialNumber>
 </PropertyGroup>
 ```
 
-#### Serial Number
+#### GitHub License Resolution
 
 ```xml
 <PropertyGroup>
-  <!-- Set custom SBOM serial number (UUID) -->
-  <CycloneDxSerialNumber>urn:uuid:12345678-1234-1234-1234-123456789abc</CycloneDxSerialNumber>
+  <!-- Enable GitHub license resolution -->
+  <CycloneDxEnableGitHubLicenses>true</CycloneDxEnableGitHubLicenses>
+
+  <!-- GitHub credentials (optional, for higher rate limits) -->
+  <CycloneDxGitHubUsername>your-username</CycloneDxGitHubUsername>
+  <CycloneDxGitHubToken>ghp_yourtoken</CycloneDxGitHubToken>
 </PropertyGroup>
 ```
 
