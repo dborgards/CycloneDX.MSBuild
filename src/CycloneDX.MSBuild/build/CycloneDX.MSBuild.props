@@ -54,12 +54,6 @@
     -->
     <CycloneDxToolVersion Condition="'$(CycloneDxToolVersion)' == ''">5.5.0</CycloneDxToolVersion>
 
-    <!--
-      CycloneDX specification version
-      Supported: 1.2, 1.3, 1.4, 1.5, 1.6
-    -->
-    <CycloneDxSpecVersion Condition="'$(CycloneDxSpecVersion)' == ''">1.6</CycloneDxSpecVersion>
-
   </PropertyGroup>
 
   <PropertyGroup Label="CycloneDX Advanced Options">
@@ -77,16 +71,32 @@
     <CycloneDxExcludeTestProjects Condition="'$(CycloneDxExcludeTestProjects)' == ''">false</CycloneDxExcludeTestProjects>
 
     <!--
-      Include license text in SBOM
-      Default: false (only license IDs)
+      Disable SBOM serial number generation
+      Default: false (serial number is auto-generated)
     -->
-    <CycloneDxIncludeLicenseText Condition="'$(CycloneDxIncludeLicenseText)' == ''">false</CycloneDxIncludeLicenseText>
+    <CycloneDxDisableSerialNumber Condition="'$(CycloneDxDisableSerialNumber)' == ''">false</CycloneDxDisableSerialNumber>
+
+  </PropertyGroup>
+
+  <PropertyGroup Label="CycloneDX License Resolution">
 
     <!--
-      Set SBOM serial number (UUID)
-      Leave empty for auto-generation
+      Enable GitHub license resolution
+      Default: false
     -->
-    <CycloneDxSerialNumber Condition="'$(CycloneDxSerialNumber)' == ''"></CycloneDxSerialNumber>
+    <CycloneDxEnableGitHubLicenses Condition="'$(CycloneDxEnableGitHubLicenses)' == ''">false</CycloneDxEnableGitHubLicenses>
+
+    <!--
+      GitHub username for license resolution
+      Leave empty to disable GitHub license lookups
+    -->
+    <CycloneDxGitHubUsername Condition="'$(CycloneDxGitHubUsername)' == ''"></CycloneDxGitHubUsername>
+
+    <!--
+      GitHub personal access token for license resolution
+      Leave empty to use unauthenticated requests (rate limited)
+    -->
+    <CycloneDxGitHubToken Condition="'$(CycloneDxGitHubToken)' == ''"></CycloneDxGitHubToken>
 
   </PropertyGroup>
 

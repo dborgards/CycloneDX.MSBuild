@@ -3,6 +3,7 @@
   <PropertyGroup>
     <!-- Multi-targeting: .NET 6, .NET 8, and .NET Standard 2.0 -->
     <TargetFrameworks>net6.0;net8.0;netstandard2.0</TargetFrameworks>
+    <LangVersion>8.0</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
