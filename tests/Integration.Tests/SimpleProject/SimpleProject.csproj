@@ -5,6 +5,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
+
+    <!-- Test metadata properties -->
+    <Version>1.2.3</Version>
+    <Authors>Test Author</Authors>
+    <Company>Test Company Inc.</Company>
+    <Description>A simple test project for CycloneDX SBOM generation</Description>
+    <Copyright>Copyright (c) 2024 Test Company Inc.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <!-- Import CycloneDX.MSBuild targets manually for local testing -->
