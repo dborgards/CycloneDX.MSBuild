@@ -9,25 +9,25 @@ namespace CycloneDX.MSBuild.Tests.IntegrationTests;
 
 // SimpleProject tests - serialize to avoid file locking on SimpleProject.dll
 [CollectionDefinition("SimpleProject")]
-public class SimpleProjectCollection
+public class SimpleProjectTestFixture
 {
 }
 
 // MultiTargetProject tests - serialize to avoid file locking
 [CollectionDefinition("MultiTargetProject")]
-public class MultiTargetProjectCollection
+public class MultiTargetProjectTestFixture
 {
 }
 
 // DisabledProject tests - serialize to avoid file locking
 [CollectionDefinition("DisabledProject")]
-public class DisabledProjectCollection
+public class DisabledProjectTestFixture
 {
 }
 
 // Configuration tests can run in parallel with project-specific tests
 // but serialize among themselves
 [CollectionDefinition("Configuration")]
-public class ConfigurationCollection
+public class ConfigurationTestFixture
 {
 }
