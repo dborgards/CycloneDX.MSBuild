@@ -60,6 +60,13 @@
   <PropertyGroup Label="CycloneDX Advanced Options">
 
     <!--
+      Enable automatic metadata generation from assembly/package properties
+      Set to 'false' to disable automatic metadata extraction
+      Default: true
+    -->
+    <CycloneDxGenerateMetadata Condition="'$(CycloneDxGenerateMetadata)' == ''">true</CycloneDxGenerateMetadata>
+
+    <!--
       Exclude development dependencies from SBOM
       Default: false
     -->

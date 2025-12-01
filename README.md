@@ -135,16 +135,93 @@ All configuration is done via MSBuild properties. Set them in your `.csproj`, `D
 </PropertyGroup>
 ```
 
-#### Import Metadata Template
+#### Automatic Metadata Generation
+
+**New in v1.1.0**: CycloneDX.MSBuild now automatically extracts assembly and package metadata from your project properties and includes it in the generated SBOM. This eliminates the need for manual metadata templates in most cases.
+
+**Automatically Extracted Metadata:**
+- **Version**: From `Version`, `VersionPrefix`, `AssemblyVersion`, or GitVersion properties (`GitVersion_FullSemVer`, `GitVersion_SemVer`)
+- **Component Name**: From `AssemblyName` or project name
+- **Authors/Supplier**: From `Authors` or `Company` properties
+- **Description**: From `Description` or `PackageDescription` properties
+- **Copyright**: From `Copyright` property
+- **License**: From `PackageLicenseExpression` property
+- **Package URL (purl)**: Automatically generated as `pkg:nuget/{name}@{version}`
+
+**Example Project Configuration:**
 
 ```xml
 <PropertyGroup>
-  <!-- Import metadata from template file -->
+  <Version>1.2.3</Version>
+  <Authors>Your Name</Authors>
+  <Company>Your Company Inc.</Company>
+  <Description>A brief description of your application</Description>
+  <Copyright>Copyright (c) 2024 Your Company Inc.</Copyright>
+  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+</PropertyGroup>
+```
+
+**Generated SBOM Component Metadata:**
+
+```json
+{
+  "component": {
+    "type": "application",
+    "bom-ref": "pkg:nuget/YourProject@1.2.3",
+    "name": "YourProject",
+    "version": "1.2.3",
+    "description": "A brief description of your application",
+    "supplier": {
+      "name": "Your Name"
+    },
+    "copyright": "Copyright (c) 2024 Your Company Inc.",
+    "licenses": [
+      {
+        "license": {
+          "id": "MIT"
+        }
+      }
+    ],
+    "purl": "pkg:nuget/YourProject@1.2.3"
+  }
+}
+```
+
+**Disable Automatic Metadata Generation:**
+
+If you prefer to use a manual metadata template or disable metadata generation entirely:
+
+```xml
+<PropertyGroup>
+  <!-- Disable automatic metadata extraction -->
+  <CycloneDxGenerateMetadata>false</CycloneDxGenerateMetadata>
+</PropertyGroup>
+```
+
+**GitVersion Integration:**
+
+If you're using [GitVersion](https://gitversion.net/) for semantic versioning, CycloneDX.MSBuild automatically detects and uses the GitVersion-generated version:
+
+```xml
+<!-- No configuration needed - GitVersion properties are automatically detected -->
+<!-- Checks GitVersion_FullSemVer and GitVersion_SemVer properties -->
+```
+
+#### Import Metadata Template (Advanced)
+
+**Note:** With automatic metadata generation enabled by default (see above), manual metadata templates are typically only needed for advanced scenarios or custom metadata structures.
+
+```xml
+<PropertyGroup>
+  <!-- Import metadata from template file (overrides automatic generation) -->
   <CycloneDxImportMetadataPath>$(MSBuildProjectDirectory)/sbom-metadata.xml</CycloneDxImportMetadataPath>
 </PropertyGroup>
 ```
 
-The metadata template allows you to provide project-specific details that will be included in the generated SBOM. This is useful for adding custom component information, licenses, and descriptions to your SBOM.
+When you specify a custom metadata template path, automatic metadata generation is skipped, and your template is used instead. This is useful for:
+- Adding custom component information beyond standard properties
+- Including additional metadata fields not extracted automatically
+- Providing complex metadata structures
 
 Example `sbom-metadata.xml`:
 
