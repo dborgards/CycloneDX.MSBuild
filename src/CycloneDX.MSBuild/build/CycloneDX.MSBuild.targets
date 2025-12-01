@@ -117,7 +117,11 @@
       <_CycloneDxArgs></_CycloneDxArgs>
       <_CycloneDxArgs>$(_CycloneDxArgs) "$(MSBuildProjectFullPath)"</_CycloneDxArgs>
       <_CycloneDxArgs>$(_CycloneDxArgs) -o "$(CycloneDxOutputDirectory)"</_CycloneDxArgs>
-      <_CycloneDxArgs>$(_CycloneDxArgs) -fn "$(CycloneDxOutputFilename)"</_CycloneDxArgs>
+
+      <!-- Build full filename with extension based on format -->
+      <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'json'">$(CycloneDxOutputFilename).json</_CycloneDxFullFilename>
+      <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'xml'">$(CycloneDxOutputFilename).xml</_CycloneDxFullFilename>
+      <_CycloneDxArgs>$(_CycloneDxArgs) -fn "$(_CycloneDxFullFilename)"</_CycloneDxArgs>
 
       <!-- Output format: json or xml (capitalize first letter for tool) -->
       <_CycloneDxOutputFormat Condition="'$(CycloneDxOutputFormat)' == 'json'">Json</_CycloneDxOutputFormat>
