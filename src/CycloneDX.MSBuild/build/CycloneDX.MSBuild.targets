@@ -109,7 +109,7 @@
     <PropertyGroup>
       <CycloneDxOutputDirectory Condition="'$(CycloneDxOutputDirectory)' == ''">$(OutputPath)</CycloneDxOutputDirectory>
       <!-- Remove trailing backslash/slash to avoid escaping the closing quote in command-line arguments -->
-      <CycloneDxOutputDirectory>$(CycloneDxOutputDirectory.TrimEnd('\').TrimEnd('/'))</CycloneDxOutputDirectory>
+      <CycloneDxOutputDirectory>$(CycloneDxOutputDirectory.TrimEnd('\\').TrimEnd('/'))</CycloneDxOutputDirectory>
     </PropertyGroup>
 
     <PropertyGroup>
