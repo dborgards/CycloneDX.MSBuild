@@ -13,6 +13,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <!-- Import CycloneDX.MSBuild targets manually for local testing -->
+  <Import Project="..\..\..\src\CycloneDX.MSBuild\buildMultiTargeting\CycloneDX.MSBuild.props" />
+  <Import Project="..\..\..\src\CycloneDX.MSBuild\buildMultiTargeting\CycloneDX.MSBuild.targets" />
+
   <ItemGroup>
     <!-- Reference the local CycloneDX.MSBuild package -->
     <ProjectReference Include="..\..\..\src\CycloneDX.MSBuild\CycloneDX.MSBuild.csproj">
