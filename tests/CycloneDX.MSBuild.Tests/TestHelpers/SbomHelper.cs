@@ -36,7 +36,11 @@ public static class SbomHelper
     /// </summary>
     public static string? GetSpecVersion(JsonDocument sbom)
     {
-        return sbom.RootElement.GetProperty("specVersion").GetString();
+        if (sbom.RootElement.TryGetProperty("specVersion", out var version))
+        {
+            return version.GetString();
+        }
+        return null;
     }
 
     /// <summary>
@@ -44,7 +48,11 @@ public static class SbomHelper
     /// </summary>
     public static string? GetSerialNumber(JsonDocument sbom)
     {
-        return sbom.RootElement.GetProperty("serialNumber").GetString();
+        if (sbom.RootElement.TryGetProperty("serialNumber", out var serialNumber))
+        {
+            return serialNumber.GetString();
+        }
+        return null;
     }
 
     /// <summary>

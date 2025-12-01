@@ -63,8 +63,10 @@ public class MultiTargetProjectTests : IDisposable
         // Assert with detailed diagnostics
         var hasValidStructure = SbomHelper.IsValidBasicStructure(sbom);
         var bomFormat = SbomHelper.GetBomFormat(sbom);
+        var specVersion = SbomHelper.GetSpecVersion(sbom);
+        var version = SbomHelper.GetVersion(sbom);
 
-        hasValidStructure.Should().BeTrue($"SBOM should have valid structure. BomFormat={bomFormat}");
+        hasValidStructure.Should().BeTrue($"SBOM should have valid structure. BomFormat={bomFormat}, SpecVersion={specVersion}, Version={version}");
         bomFormat.Should().Be("CycloneDX");
     }
 
