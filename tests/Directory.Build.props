@@ -1,0 +1,23 @@
+<Project>
+  <!-- Import parent Directory.Build.props -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <!-- Relax code analysis for test projects -->
+    <NoWarn>$(NoWarn);CA1707;CA1305;CA2201</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- CA1707: Identifiers should not contain underscores - OK for test method names -->
+    <dotnet_diagnostic.CA1707.severity>none</dotnet_diagnostic.CA1707.severity>
+
+    <!-- CA1305: Specify IFormatProvider - Not critical for test code -->
+    <dotnet_diagnostic.CA1305.severity>none</dotnet_diagnostic.CA1305.severity>
+
+    <!-- CA2201: Do not raise reserved exception types - OK for test/benchmark helpers -->
+    <dotnet_diagnostic.CA2201.severity>none</dotnet_diagnostic.CA2201.severity>
+
+    <!-- CA1062: Validate arguments of public methods - Tests don't need null checks -->
+    <dotnet_diagnostic.CA1062.severity>none</dotnet_diagnostic.CA1062.severity>
+  </PropertyGroup>
+</Project>
