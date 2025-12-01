@@ -157,6 +157,9 @@
           AfterTargets="Publish"
           Condition="'$(GenerateCycloneDxSbom)' == 'true' and '$(PublishDir)' != ''">
     <PropertyGroup>
+      <!-- Recalculate the full filename in case it wasn't set during build -->
+      <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'json' OR '$(CycloneDxOutputFormat)' == ''">$(CycloneDxOutputFilename).json</_CycloneDxFullFilename>
+      <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'xml'">$(CycloneDxOutputFilename).xml</_CycloneDxFullFilename>
       <_CycloneDxPublishPath>$(PublishDir)$(_CycloneDxFullFilename)</_CycloneDxPublishPath>
     </PropertyGroup>
     <Message Importance="normal" Text="[CycloneDX] Copying SBOM to publish directory..." />

@@ -124,11 +124,11 @@ public static class SbomHelper
         try
         {
             // Required fields per CycloneDX spec
-            _ = sbom.RootElement.GetProperty("bomFormat");
-            _ = sbom.RootElement.GetProperty("specVersion");
-            _ = sbom.RootElement.GetProperty("version");
+            var hasBomFormat = sbom.RootElement.TryGetProperty("bomFormat", out _);
+            var hasSpecVersion = sbom.RootElement.TryGetProperty("specVersion", out _);
+            var hasVersion = sbom.RootElement.TryGetProperty("version", out _);
 
-            return true;
+            return hasBomFormat && hasSpecVersion && hasVersion;
         }
         catch
         {
