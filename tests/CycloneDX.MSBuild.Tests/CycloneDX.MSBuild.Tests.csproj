@@ -26,6 +26,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Reference CycloneDX.MSBuild first to ensure it's built before Integration.Tests projects -->
+    <!-- This prevents parallel builds of the shared dependency that cause file locking -->
+    <ProjectReference Include="../../src/CycloneDX.MSBuild/CycloneDX.MSBuild.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Properties>GeneratePackageOnBuild=false</Properties>
+    </ProjectReference>
+
     <!-- Reference the test projects to ensure they're built before copying -->
     <ProjectReference Include="../Integration.Tests/SimpleProject/SimpleProject.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
