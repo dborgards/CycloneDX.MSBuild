@@ -105,6 +105,11 @@
 
     <Message Importance="high" Text="[CycloneDX] Generating SBOM for $(MSBuildProjectName)..." />
 
+    <!-- Set output directory default now, when $(OutputPath) is available -->
+    <PropertyGroup>
+      <CycloneDxOutputDirectory Condition="'$(CycloneDxOutputDirectory)' == ''">$(OutputPath)</CycloneDxOutputDirectory>
+    </PropertyGroup>
+
     <PropertyGroup>
       <!-- Build command line arguments -->
       <_CycloneDxArgs></_CycloneDxArgs>

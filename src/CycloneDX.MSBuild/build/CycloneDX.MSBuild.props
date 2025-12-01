@@ -27,16 +27,17 @@
   <PropertyGroup Label="CycloneDX Output Configuration">
 
     <!--
-      Output format: json, xml, or spdx-json
+      Output format: json, xml
       Default: json
     -->
     <CycloneDxOutputFormat Condition="'$(CycloneDxOutputFormat)' == ''">json</CycloneDxOutputFormat>
 
     <!--
       Output directory for generated SBOM
-      Default: $(OutputPath) (e.g., bin/Debug/net8.0/)
+      Default: $(OutputPath) - set at build time in .targets file
+      Users can override this in their project file
     -->
-    <CycloneDxOutputDirectory Condition="'$(CycloneDxOutputDirectory)' == ''">$(OutputPath)</CycloneDxOutputDirectory>
+    <!-- CycloneDxOutputDirectory default is set in .targets, not here -->
 
     <!--
       Output filename (without extension)
