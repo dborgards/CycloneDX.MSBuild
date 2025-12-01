@@ -144,9 +144,12 @@ All configuration is done via MSBuild properties. Set them in your `.csproj`, `D
 The metadata template allows you to provide project-specific details that will be included in the generated SBOM. This is useful for adding custom component information, licenses, and descriptions to your SBOM.
 
 Example `sbom-metadata.xml`:
+
+> **Note:** CycloneDX.MSBuild supports metadata templates using CycloneDX schema versions 1.2 through 1.6. You may use any supported version, but [1.6](https://cyclonedx.org/docs/1.6/) is recommended for new projects.
+
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<bom xmlns="http://cyclonedx.org/schema/bom/1.2">
+<bom xmlns="http://cyclonedx.org/schema/bom/1.6">
   <metadata>
     <component type="application" bom-ref="pkg:nuget/YourProject@1.0.0">
       <name>YourProject</name>
