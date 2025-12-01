@@ -32,6 +32,14 @@
     </PackageReleaseNotes>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(IsTopLevelBuildProject)' != 'true'">
+    <!-- When this project is built transitively we isolate its output to avoid file locking -->
+    <CycloneDXParallelOutputRoot>$(MSBuildProjectDirectory)/bin/$(Configuration)/$(TargetFramework)/_references/$(MSBuildNodeId)/</CycloneDXParallelOutputRoot>
+    <OutputPath>$(CycloneDXParallelOutputRoot)</OutputPath>
+    <!-- Skip package generation for dependency builds to prevent repeated pack operations -->
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
   <ItemGroup>
     <!-- Include build files in package -->
     <None Include="build\**" Pack="true" PackagePath="build\" />

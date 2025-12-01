@@ -15,4 +15,9 @@
     <!-- Suppress upgrade warning - we're using SDK's built-in analyzers -->
     <_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Give each project its own obj directory to avoid cross-project locking -->
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$(MSBuildProjectDirectory)/obj/$(MSBuildProjectName)/</BaseIntermediateOutputPath>
+  </PropertyGroup>
 </Project>

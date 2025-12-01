@@ -30,6 +30,7 @@
     <!-- This prevents parallel builds of the shared dependency that cause file locking -->
     <ProjectReference Include="../../src/CycloneDX.MSBuild/CycloneDX.MSBuild.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <BuildInParallel>false</BuildInParallel>
       <Properties>GeneratePackageOnBuild=false</Properties>
     </ProjectReference>
 

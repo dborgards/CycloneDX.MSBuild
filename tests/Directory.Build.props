@@ -15,6 +15,5 @@
     <!-- Use project-specific intermediate output directories to prevent parallel build conflicts -->
     <!-- This ensures each project has its own obj/ directory even when building shared dependencies -->
     <BaseIntermediateOutputPath>$(MSBuildProjectDirectory)/obj/$(MSBuildProjectName)/</BaseIntermediateOutputPath>
-    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)/</IntermediateOutputPath>
   </PropertyGroup>
 </Project>
