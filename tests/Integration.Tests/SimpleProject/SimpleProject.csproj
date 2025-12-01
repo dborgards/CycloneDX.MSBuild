@@ -23,6 +23,7 @@
     <!-- Reference the local CycloneDX.MSBuild package -->
     <ProjectReference Include="..\..\..\src\CycloneDX.MSBuild\CycloneDX.MSBuild.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Properties>GeneratePackageOnBuild=false</Properties>
     </ProjectReference>
   </ItemGroup>
 
