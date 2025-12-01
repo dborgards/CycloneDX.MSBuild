@@ -84,6 +84,12 @@
 
   </Target>
 
+  <!--
+    Metadata generation is disabled for .NET Core builds by the condition '$(MSBuildRuntimeType)' != 'Core'.
+    This is because certain MSBuild properties and tasks used for metadata extraction are not available or behave differently in .NET Core,
+    which can result in incomplete or incorrect metadata. If .NET Core support for metadata generation is required,
+    this condition and the associated logic should be reviewed and tested for compatibility.
+  -->
   <Target Name="GenerateCycloneDxMetadata"
           BeforeTargets="GenerateCycloneDxSbom"
           Condition="'$(GenerateCycloneDxSbom)' == 'true' AND '$(CycloneDxGenerateMetadata)' == 'true' AND '$(CycloneDxImportMetadataPath)' == '' AND '$(MSBuildRuntimeType)' != 'Core'">
