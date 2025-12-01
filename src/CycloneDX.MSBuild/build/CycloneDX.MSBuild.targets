@@ -134,9 +134,35 @@
       <_CycloneDxLicense Condition="'$(PackageLicenseExpression)' != ''">$(PackageLicenseExpression)</_CycloneDxLicense>
 
       <!-- Build package URL (purl) -->
-      <_CycloneDxPurl>pkg:nuget/$(_CycloneDxComponentName)@$(_CycloneDxVersion)</_CycloneDxPurl>
     </PropertyGroup>
 
+    <!-- Inline task to URL-encode component name and version -->
+    <UsingTask TaskName="UrlEncodeCycloneDxProps" TaskFactory="CodeTaskFactory" AssemblyName="Microsoft.Build.Tasks.Core">
+      <ParameterGroup>
+        ComponentName ParameterType="System.String" Required="true" />
+        Version ParameterType="System.String" Required="true" />
+        EncodedComponentName ParameterType="System.String" Output="true" />
+        EncodedVersion ParameterType="System.String" Output="true" />
+      </ParameterGroup>
+      <Task>
+        <Reference Include="System" />
+        <Code Type="Fragment" Language="cs">
+          EncodedComponentName = System.Uri.EscapeDataString(ComponentName ?? "");
+          EncodedVersion = System.Uri.EscapeDataString(Version ?? "");
+        </Code>
+      </Task>
+    </UsingTask>
+
+    <UrlEncodeCycloneDxProps
+      ComponentName="$(_CycloneDxComponentName)"
+      Version="$(_CycloneDxVersion)">
+      <Output TaskParameter="EncodedComponentName" PropertyName="_CycloneDxComponentNameEncoded" />
+      <Output TaskParameter="EncodedVersion" PropertyName="_CycloneDxVersionEncoded" />
+    </UrlEncodeCycloneDxProps>
+
+    <PropertyGroup>
+      <_CycloneDxPurl>pkg:nuget/$(_CycloneDxComponentNameEncoded)@$(_CycloneDxVersionEncoded)</_CycloneDxPurl>
+    </PropertyGroup>
     <Message Importance="low" Text="[CycloneDX] Generating metadata from assembly information..." />
     <Message Importance="low" Text="[CycloneDX] Version: $(_CycloneDxVersion)" />
     <Message Importance="low" Text="[CycloneDX] Name: $(_CycloneDxComponentName)" />
