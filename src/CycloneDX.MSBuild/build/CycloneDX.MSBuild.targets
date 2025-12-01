@@ -147,35 +147,35 @@
       <_CycloneDxMetadataContent><![CDATA[<?xml version="1.0" encoding="utf-8"?>
 <bom xmlns="http://cyclonedx.org/schema/bom/1.6">
   <metadata>
-    <component type="application" bom-ref="$(_CycloneDxPurl)">
-      <name>$(_CycloneDxComponentName)</name>
-      <version>$(_CycloneDxVersion)</version>]]></_CycloneDxMetadataContent>
+    <component type="application" bom-ref="$([System.Security.SecurityElement::Escape('$(_CycloneDxPurl)'))]">
+      <name>$([System.Security.SecurityElement::Escape('$(_CycloneDxComponentName)'))]</name>
+      <version>$([System.Security.SecurityElement::Escape('$(_CycloneDxVersion)'))]</version>]]></_CycloneDxMetadataContent>
 
       <!-- Add description if available -->
       <_CycloneDxMetadataContent Condition="'$(_CycloneDxDescription)' != ''">$(_CycloneDxMetadataContent)<![CDATA[
-      <description>$(_CycloneDxDescription)</description>]]></_CycloneDxMetadataContent>
+      <description>$([System.Security.SecurityElement::Escape('$(_CycloneDxDescription)'))]</description>]]></_CycloneDxMetadataContent>
 
       <!-- Add authors/supplier if available -->
       <_CycloneDxMetadataContent Condition="'$(_CycloneDxAuthors)' != ''">$(_CycloneDxMetadataContent)<![CDATA[
       <supplier>
-        <name>$(_CycloneDxAuthors)</name>
+        <name>$([System.Security.SecurityElement::Escape('$(_CycloneDxAuthors)'))]</name>
       </supplier>]]></_CycloneDxMetadataContent>
 
       <!-- Add copyright if available -->
       <_CycloneDxMetadataContent Condition="'$(_CycloneDxCopyright)' != ''">$(_CycloneDxMetadataContent)<![CDATA[
-      <copyright>$(_CycloneDxCopyright)</copyright>]]></_CycloneDxMetadataContent>
+      <copyright>$([System.Security.SecurityElement::Escape('$(_CycloneDxCopyright)'))]</copyright>]]></_CycloneDxMetadataContent>
 
       <!-- Add license if available -->
       <_CycloneDxMetadataContent Condition="'$(_CycloneDxLicense)' != ''">$(_CycloneDxMetadataContent)<![CDATA[
       <licenses>
         <license>
-          <id>$(_CycloneDxLicense)</id>
+          <id>$([System.Security.SecurityElement::Escape('$(_CycloneDxLicense)'))]</id>
         </license>
       </licenses>]]></_CycloneDxMetadataContent>
 
       <!-- Add purl -->
       <_CycloneDxMetadataContent>$(_CycloneDxMetadataContent)<![CDATA[
-      <purl>$(_CycloneDxPurl)</purl>
+      <purl>$([System.Security.SecurityElement::Escape('$(_CycloneDxPurl)'))]</purl>
     </component>
   </metadata>
 </bom>]]></_CycloneDxMetadataContent>
