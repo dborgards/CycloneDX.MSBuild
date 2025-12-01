@@ -184,4 +184,35 @@
 
   </Target>
 
+  <!-- Copy SBOM to publish directory after publish -->
+  <Target Name="CopyCycloneDxSbomToPublishDirectory"
+          AfterTargets="Publish"
+          Condition="'$(GenerateCycloneDxSbom)' == 'true' AND '$(PublishDir)' != ''">
+
+    <PropertyGroup>
+      <!-- Determine the target path in publish directory -->
+      <_CycloneDxPublishPath>$(PublishDir)$(_CycloneDxFullFilename)</_CycloneDxPublishPath>
+    </PropertyGroup>
+
+    <Message Importance="normal" Text="[CycloneDX] Copying SBOM to publish directory..." />
+
+    <!-- Copy the SBOM file to publish directory -->
+    <Copy
+      SourceFiles="$(CycloneDxOutputPath)"
+      DestinationFiles="$(_CycloneDxPublishPath)"
+      SkipUnchangedFiles="true"
+      Condition="Exists('$(CycloneDxOutputPath)')">
+    </Copy>
+
+    <Message
+      Importance="high"
+      Condition="Exists('$(CycloneDxOutputPath)')"
+      Text="[CycloneDX] SBOM copied to publish directory: $(_CycloneDxPublishPath)" />
+
+    <Warning
+      Condition="!Exists('$(CycloneDxOutputPath)')"
+      Text="[CycloneDX] SBOM file not found at $(CycloneDxOutputPath). Ensure build was successful before publishing." />
+
+  </Target>
+
 </Project>
