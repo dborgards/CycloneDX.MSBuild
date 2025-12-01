@@ -77,6 +77,13 @@
     -->
     <CycloneDxDisableSerialNumber Condition="'$(CycloneDxDisableSerialNumber)' == ''">false</CycloneDxDisableSerialNumber>
 
+    <!--
+      Import metadata template path
+      Optionally provide a metadata template which has project specific details
+      Default: empty (no metadata import)
+    -->
+    <CycloneDxImportMetadataPath Condition="'$(CycloneDxImportMetadataPath)' == ''"></CycloneDxImportMetadataPath>
+
   </PropertyGroup>
 
   <PropertyGroup Label="CycloneDX License Resolution">
