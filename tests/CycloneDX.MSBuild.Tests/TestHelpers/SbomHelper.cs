@@ -156,10 +156,16 @@ public static class SbomHelper
             var hasVersion = sbom.RootElement.TryGetProperty("version", out var version);
 
             var details = $"hasBomFormat={hasBomFormat}";
-            if (hasBomFormat) details += $" (value={bomFormat.GetString()})";
+            if (hasBomFormat)
+            {
+                details += $" (value={bomFormat.GetString()})";
+            }
 
             details += $", hasSpecVersion={hasSpecVersion}";
-            if (hasSpecVersion) details += $" (value={specVersion.GetString()})";
+            if (hasSpecVersion)
+            {
+                details += $" (value={specVersion.GetString()})";
+            }
 
             details += $", hasVersion={hasVersion}";
             if (hasVersion)
