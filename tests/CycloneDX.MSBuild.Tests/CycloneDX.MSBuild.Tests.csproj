@@ -37,8 +37,10 @@
     <ProjectReference Include="../Integration.Tests/SimpleProject/SimpleProject.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <!-- MultiTargetProject builds for 3 frameworks - prevent parallel builds to avoid file locking -->
     <ProjectReference Include="../Integration.Tests/MultiTargetProject/MultiTargetProject.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <BuildInParallel>false</BuildInParallel>
     </ProjectReference>
     <ProjectReference Include="../Integration.Tests/DisabledProject/DisabledProject.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
