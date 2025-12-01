@@ -7,6 +7,7 @@ namespace CycloneDX.MSBuild.Tests.IntegrationTests;
 /// <summary>
 /// Integration tests for multi-target framework projects.
 /// </summary>
+[Collection("MultiTargetProject")]
 public class MultiTargetProjectTests : IDisposable
 {
     private readonly string _projectPath;

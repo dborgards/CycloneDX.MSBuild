@@ -7,6 +7,7 @@ namespace CycloneDX.MSBuild.Tests.IntegrationTests;
 /// <summary>
 /// Integration tests for projects with SBOM generation disabled.
 /// </summary>
+[Collection("DisabledProject")]
 public class DisabledProjectTests : IDisposable
 {
     private readonly string _projectPath;

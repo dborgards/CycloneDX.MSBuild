@@ -7,6 +7,7 @@ namespace CycloneDX.MSBuild.Tests.IntegrationTests;
 /// <summary>
 /// Tests for various configuration options.
 /// </summary>
+[Collection("Configuration")]
 public class ConfigurationTests : IDisposable
 {
     private readonly string _projectPath;

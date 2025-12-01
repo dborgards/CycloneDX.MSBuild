@@ -7,6 +7,7 @@ namespace CycloneDX.MSBuild.Tests.IntegrationTests;
 /// <summary>
 /// Integration tests for simple single-target projects.
 /// </summary>
+[Collection("SimpleProject")]
 public class SimpleProjectTests : IDisposable
 {
     private readonly string _projectPath;
