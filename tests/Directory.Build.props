@@ -10,4 +10,11 @@
     <!-- CA1062: Validate arguments of public methods - Tests don't need null checks -->
     <NoWarn>$(NoWarn);CA1707;CA1305;CA2201;CA1062</NoWarn>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Use project-specific intermediate output directories to prevent parallel build conflicts -->
+    <!-- This ensures each project has its own obj/ directory even when building shared dependencies -->
+    <BaseIntermediateOutputPath>$(MSBuildProjectDirectory)/obj/$(MSBuildProjectName)/</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)/</IntermediateOutputPath>
+  </PropertyGroup>
 </Project>

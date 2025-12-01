@@ -14,4 +14,14 @@
     <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Reference CycloneDX.MSBuild first to ensure it's built before this project -->
+    <!-- This prevents parallel builds of the shared dependency that cause file locking -->
+    <ProjectReference Include="../../src/CycloneDX.MSBuild/CycloneDX.MSBuild.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <BuildInParallel>false</BuildInParallel>
+      <Properties>GeneratePackageOnBuild=false</Properties>
+    </ProjectReference>
+  </ItemGroup>
+
 </Project>
