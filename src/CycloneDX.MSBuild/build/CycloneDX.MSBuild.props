@@ -41,9 +41,9 @@
 
     <!--
       Output filename (without extension)
-      Default: bom (results in bom.json or bom.xml)
+      Default: sbom (results in sbom.json or sbom.xml)
     -->
-    <CycloneDxOutputFilename Condition="'$(CycloneDxOutputFilename)' == ''">bom</CycloneDxOutputFilename>
+    <CycloneDxOutputFilename Condition="'$(CycloneDxOutputFilename)' == ''">sbom</CycloneDxOutputFilename>
 
   </PropertyGroup>
 

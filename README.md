@@ -42,7 +42,7 @@ Or add it manually to your `.csproj`:
 dotnet build
 ```
 
-That's it! Your SBOM will be generated at `bin/Debug/net8.0/bom.json` (or your output directory).
+That's it! Your SBOM will be generated at `bin/Debug/net8.0/sbom.json` (or your output directory).
 
 ## 📋 Features
 
@@ -167,7 +167,7 @@ Consumers of your NuGet package can inspect the SBOM:
 ```bash
 # Extract and view
 unzip -q MyPackage.1.0.0.nupkg -d extracted
-cat extracted/sbom/bom.json
+cat extracted/sbom/sbom.json
 ```
 
 ## 🏗️ Architecture
