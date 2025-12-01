@@ -1,0 +1,77 @@
+version: 2
+updates:
+  # Enable version updates for NuGet dependencies
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "nuget"
+    commit-message:
+      prefix: "build"
+      prefix-development: "build"
+      include: "scope"
+    # Group minor and patch updates together
+    groups:
+      nuget-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    # Allow specific dependencies
+    allow:
+      - dependency-type: "all"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    # Group all GitHub Actions updates together
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # Monitor the integration test projects
+  - package-ecosystem: "nuget"
+    directory: "/tests/Integration.Tests/SimpleProject"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "test-dependencies"
+    commit-message:
+      prefix: "test"
+      include: "scope"
+
+  - package-ecosystem: "nuget"
+    directory: "/tests/Integration.Tests/MultiTargetProject"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "test-dependencies"
+    commit-message:
+      prefix: "test"
+      include: "scope"

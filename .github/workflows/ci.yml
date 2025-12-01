@@ -43,11 +43,22 @@ jobs:
       - name: Build solution
         run: dotnet build -c Release --no-restore
 
-      - name: Build test projects
+      - name: Run tests
+        run: dotnet test tests/CycloneDX.MSBuild.Tests/CycloneDX.MSBuild.Tests.csproj -c Release --no-restore --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+
+      - name: Build integration test projects
         run: |
           dotnet build tests/Integration.Tests/SimpleProject/SimpleProject.csproj -c Release --no-restore
           dotnet build tests/Integration.Tests/MultiTargetProject/MultiTargetProject.csproj -c Release --no-restore
           dotnet build tests/Integration.Tests/DisabledProject/DisabledProject.csproj -c Release --no-restore
+
+      - name: Upload coverage reports
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/**/coverage.cobertura.xml
+          retention-days: 7
 
       - name: Pack NuGet package (validation)
         run: dotnet pack src/CycloneDX.MSBuild/CycloneDX.MSBuild.csproj -c Release --no-build
@@ -80,7 +91,11 @@ jobs:
 
       - name: Check formatting
         run: dotnet format --verify-no-changes --no-restore
-        continue-on-error: true
+
+      - name: Run static analysis
+        run: dotnet build -c Release --no-restore -p:TreatWarningsAsErrors=true -p:CI=true
+        env:
+          CI: true
 
       - name: Run package validation
         run: dotnet pack src/CycloneDX.MSBuild/CycloneDX.MSBuild.csproj -c Release -p:EnablePackageValidation=true

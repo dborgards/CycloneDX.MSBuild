@@ -168,4 +168,123 @@
     <Warning Condition="!Exists('$(CycloneDxOutputPath)')" Text="[CycloneDX] SBOM file not found at $(CycloneDxOutputPath). Ensure build was successful before publishing." />
   </Target>
 
+  <!-- Optional: Validate generated SBOM against CycloneDX schema -->
+  <Target Name="ValidateCycloneDxSbom"
+          AfterTargets="GenerateCycloneDxSbom"
+          Condition="'$(CycloneDxValidateSbom)' == 'true' AND Exists('$(CycloneDxOutputPath)')">
+
+    <Message Importance="normal" Text="[CycloneDX] Validating SBOM against CycloneDX schema..." />
+
+    <!-- Check if cyclonedx-cli is available -->
+    <Exec
+      Command="npx --version"
+      ContinueOnError="true"
+      StandardOutputImportance="low"
+      StandardErrorImportance="low"
+      IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="_CycloneDxNpxAvailable" />
+    </Exec>
+
+    <Warning
+      Condition="'$(_CycloneDxNpxAvailable)' != '0'"
+      Text="[CycloneDX] npx not found. SBOM validation requires npm and @cyclonedx/cyclonedx-cli. Skipping validation." />
+
+    <!-- Validate SBOM using cyclonedx-cli -->
+    <Exec
+      Command="npx --yes @cyclonedx/cyclonedx-cli validate --input-file &quot;$(CycloneDxOutputPath)&quot;"
+      Condition="'$(_CycloneDxNpxAvailable)' == '0'"
+      ContinueOnError="$(CycloneDxContinueOnError)"
+      StandardOutputImportance="normal"
+      StandardErrorImportance="high">
+      <Output TaskParameter="ExitCode" PropertyName="_CycloneDxValidateExitCode" />
+    </Exec>
+
+    <Message
+      Importance="high"
+      Condition="'$(_CycloneDxValidateExitCode)' == '0'"
+      Text="[CycloneDX] SBOM validation passed successfully!" />
+
+    <Warning
+      Condition="'$(_CycloneDxValidateExitCode)' != '0' AND '$(CycloneDxContinueOnError)' == 'true'"
+      Text="[CycloneDX] SBOM validation failed. Build continuing due to CycloneDxContinueOnError=true" />
+
+    <Error
+      Condition="'$(_CycloneDxValidateExitCode)' != '0' AND '$(CycloneDxContinueOnError)' == 'false'"
+      Text="[CycloneDX] SBOM validation failed. Fix validation errors or set CycloneDxContinueOnError=true" />
+
+  </Target>
+
+  <!-- Optional: Check if SBOM needs regeneration (incremental build support) -->
+  <Target Name="CheckCycloneDxIncrementalBuild"
+          BeforeTargets="GenerateCycloneDxSbom"
+          Condition="'$(CycloneDxEnableIncrementalBuild)' == 'true' AND '$(GenerateCycloneDxSbom)' == 'true'">
+
+    <!-- Compute a hash of project dependencies to detect changes -->
+    <PropertyGroup>
+      <_CycloneDxDependenciesHash>$(MSBuildProjectFullPath).CycloneDxDependenciesHash</_CycloneDxDependenciesHash>
+      <_CycloneDxCurrentHash></_CycloneDxCurrentHash>
+    </PropertyGroup>
+
+    <!-- Get current project file and packages.lock.json modification times as a simple hash -->
+    <ItemGroup>
+      <_CycloneDxDependencyFiles Include="$(MSBuildProjectFullPath)" />
+      <_CycloneDxDependencyFiles Include="$(MSBuildProjectDirectory)/packages.lock.json" Condition="Exists('$(MSBuildProjectDirectory)/packages.lock.json')" />
+      <_CycloneDxDependencyFiles Include="$(MSBuildProjectDirectory)/obj/project.assets.json" Condition="Exists('$(MSBuildProjectDirectory)/obj/project.assets.json')" />
+    </ItemGroup>
+
+    <!-- Hash based on file modification times -->
+    <Hash ItemsToHash="@(_CycloneDxDependencyFiles)">
+      <Output TaskParameter="HashResult" PropertyName="_CycloneDxCurrentHash" />
+    </Hash>
+
+    <!-- Read previous hash if exists -->
+    <ReadLinesFromFile
+      File="$(_CycloneDxDependenciesHash)"
+      Condition="Exists('$(_CycloneDxDependenciesHash)')">
+      <Output TaskParameter="Lines" PropertyName="_CycloneDxPreviousHash" />
+    </ReadLinesFromFile>
+
+    <!-- Compare hashes -->
+    <PropertyGroup>
+      <_CycloneDxDependenciesChanged Condition="'$(_CycloneDxCurrentHash)' != '$(_CycloneDxPreviousHash)'">true</_CycloneDxDependenciesChanged>
+      <_CycloneDxDependenciesChanged Condition="'$(_CycloneDxCurrentHash)' == '$(_CycloneDxPreviousHash)'">false</_CycloneDxDependenciesChanged>
+      <_CycloneDxSbomExists Condition="Exists('$(CycloneDxOutputPath)')">true</_CycloneDxSbomExists>
+      <_CycloneDxSbomExists Condition="!Exists('$(CycloneDxOutputPath)')">false</_CycloneDxSbomExists>
+    </PropertyGroup>
+
+    <!-- Skip generation if dependencies haven't changed and SBOM exists -->
+    <PropertyGroup Condition="'$(_CycloneDxDependenciesChanged)' == 'false' AND '$(_CycloneDxSbomExists)' == 'true'">
+      <GenerateCycloneDxSbom>false</GenerateCycloneDxSbom>
+    </PropertyGroup>
+
+    <Message
+      Importance="normal"
+      Condition="'$(_CycloneDxDependenciesChanged)' == 'false' AND '$(_CycloneDxSbomExists)' == 'true'"
+      Text="[CycloneDX] Skipping SBOM generation - dependencies unchanged and SBOM exists" />
+
+    <Message
+      Importance="normal"
+      Condition="'$(_CycloneDxDependenciesChanged)' == 'true' OR '$(_CycloneDxSbomExists)' == 'false'"
+      Text="[CycloneDX] Dependencies changed or SBOM missing - will regenerate SBOM" />
+
+  </Target>
+
+  <!-- Save dependency hash after successful SBOM generation -->
+  <Target Name="SaveCycloneDxDependenciesHash"
+          AfterTargets="GenerateCycloneDxSbom"
+          Condition="'$(CycloneDxEnableIncrementalBuild)' == 'true' AND '$(_CycloneDxGenerateExitCode)' == '0'">
+
+    <PropertyGroup>
+      <_CycloneDxDependenciesHash>$(MSBuildProjectFullPath).CycloneDxDependenciesHash</_CycloneDxDependenciesHash>
+    </PropertyGroup>
+
+    <!-- Save current hash for next build -->
+    <WriteLinesToFile
+      File="$(_CycloneDxDependenciesHash)"
+      Lines="$(_CycloneDxCurrentHash)"
+      Overwrite="true"
+      Condition="'$(_CycloneDxCurrentHash)' != ''" />
+
+  </Target>
+
 </Project>

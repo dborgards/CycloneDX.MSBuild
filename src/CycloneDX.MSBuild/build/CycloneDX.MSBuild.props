@@ -91,6 +91,20 @@
     -->
     <CycloneDxImportMetadataPath Condition="'$(CycloneDxImportMetadataPath)' == ''"></CycloneDxImportMetadataPath>
 
+    <!--
+      Validate generated SBOM against CycloneDX schema
+      Default: false (validation disabled)
+      Note: Requires npm and @cyclonedx/cyclonedx-cli to be installed
+    -->
+    <CycloneDxValidateSbom Condition="'$(CycloneDxValidateSbom)' == ''">false</CycloneDxValidateSbom>
+
+    <!--
+      Enable incremental SBOM generation
+      When true, SBOM is only regenerated if dependencies change
+      Default: false (always regenerate)
+    -->
+    <CycloneDxEnableIncrementalBuild Condition="'$(CycloneDxEnableIncrementalBuild)' == ''">false</CycloneDxEnableIncrementalBuild>
+
   </PropertyGroup>
 
   <PropertyGroup Label="CycloneDX License Resolution">
