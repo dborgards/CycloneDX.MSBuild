@@ -34,16 +34,18 @@
     </ProjectReference>
 
     <!-- Reference the test projects to ensure they're built before copying -->
+    <!-- Disable parallel builds to prevent file locking on shared CycloneDX.MSBuild dependency -->
     <ProjectReference Include="../Integration.Tests/SimpleProject/SimpleProject.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <BuildInParallel>false</BuildInParallel>
     </ProjectReference>
-    <!-- MultiTargetProject builds for 3 frameworks - prevent parallel builds to avoid file locking -->
     <ProjectReference Include="../Integration.Tests/MultiTargetProject/MultiTargetProject.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <BuildInParallel>false</BuildInParallel>
     </ProjectReference>
     <ProjectReference Include="../Integration.Tests/DisabledProject/DisabledProject.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <BuildInParallel>false</BuildInParallel>
     </ProjectReference>
   </ItemGroup>
 
