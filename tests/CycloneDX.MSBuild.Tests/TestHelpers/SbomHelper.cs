@@ -145,6 +145,46 @@ public static class SbomHelper
     }
 
     /// <summary>
+    /// Gets detailed structure validation information for diagnostics.
+    /// </summary>
+    public static string GetStructureValidationDetails(JsonDocument sbom)
+    {
+        try
+        {
+            var hasBomFormat = sbom.RootElement.TryGetProperty("bomFormat", out var bomFormat);
+            var hasSpecVersion = sbom.RootElement.TryGetProperty("specVersion", out var specVersion);
+            var hasVersion = sbom.RootElement.TryGetProperty("version", out var version);
+
+            var details = $"hasBomFormat={hasBomFormat}";
+            if (hasBomFormat) details += $" (value={bomFormat.GetString()})";
+
+            details += $", hasSpecVersion={hasSpecVersion}";
+            if (hasSpecVersion) details += $" (value={specVersion.GetString()})";
+
+            details += $", hasVersion={hasVersion}";
+            if (hasVersion)
+            {
+                details += $" (kind={version.ValueKind}";
+                if (version.ValueKind == JsonValueKind.Number)
+                {
+                    details += $", value={version.GetInt32()}";
+                }
+                else if (version.ValueKind == JsonValueKind.String)
+                {
+                    details += $", value=\"{version.GetString()}\"";
+                }
+                details += ")";
+            }
+
+            return details;
+        }
+        catch (Exception ex)
+        {
+            return $"Error getting details: {ex.Message}";
+        }
+    }
+
+    /// <summary>
     /// Gets the BOM format from a JSON SBOM.
     /// </summary>
     public static string? GetBomFormat(JsonDocument sbom)
