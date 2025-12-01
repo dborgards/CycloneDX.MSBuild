@@ -3,10 +3,19 @@
   <PropertyGroup>
     <!-- Multi-targeting: .NET 6, .NET 8, and .NET Standard 2.0 -->
     <TargetFrameworks>net6.0;net8.0;netstandard2.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <LangVersion>10.0</LangVersion>
     <OutputType>Library</OutputType>
   </PropertyGroup>
+
+  <!-- Enable ImplicitUsings and Nullable only for .NET 6+ (not for netstandard2.0) -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'net8.0'">
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- Import CycloneDX.MSBuild targets manually for local testing -->
+  <Import Project="..\..\..\src\CycloneDX.MSBuild\buildMultiTargeting\CycloneDX.MSBuild.props" />
+  <Import Project="..\..\..\src\CycloneDX.MSBuild\buildMultiTargeting\CycloneDX.MSBuild.targets" />
 
   <ItemGroup>
     <!-- Reference the local CycloneDX.MSBuild package -->

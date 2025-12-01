@@ -5,6 +5,10 @@
     <OutputType>Library</OutputType>
   </PropertyGroup>
 
+  <!-- Import CycloneDX.MSBuild targets manually for local testing -->
+  <Import Project="..\..\..\src\CycloneDX.MSBuild\build\CycloneDX.MSBuild.props" />
+  <Import Project="..\..\..\src\CycloneDX.MSBuild\build\CycloneDX.MSBuild.targets" />
+
   <!-- Explicitly disable SBOM generation for this project -->
   <PropertyGroup>
     <GenerateCycloneDxSbom>false</GenerateCycloneDxSbom>

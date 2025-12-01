@@ -1,6 +1,6 @@
 # CycloneDX.MSBuild
 
-[![License](https://img.shields.io/badge/license-Apache%202.0-brightgreen.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 [![NuGet](https://img.shields.io/nuget/v/CycloneDX.MSBuild.svg)](https://www.nuget.org/packages/CycloneDX.MSBuild/)
 
 MSBuild targets for automatic **CycloneDX SBOM** (Software Bill of Materials) generation during build and pack operations. Seamlessly integrates the [CycloneDX .NET tool](https://github.com/CycloneDX/cyclonedx-dotnet) into your build pipeline.
@@ -42,7 +42,7 @@ Or add it manually to your `.csproj`:
 dotnet build
 ```
 
-That's it! Your SBOM will be generated at `bin/Debug/net8.0/bom.json` (or your output directory).
+That's it! Your SBOM will be generated at `bin/Debug/net8.0/sbom.json` (or your output directory).
 
 ## 📋 Features
 
@@ -60,7 +60,7 @@ SBOMs are generated automatically:
 
 ### CycloneDX Specification Versions
 
-Supports CycloneDX spec versions: `1.2`, `1.3`, `1.4`, `1.5`, `1.6` (default)
+The tool automatically uses the latest CycloneDX specification version supported by the installed tool version (typically 1.6).
 
 ## ⚙️ Configuration
 
@@ -109,15 +109,6 @@ All configuration is done via MSBuild properties. Set them in your `.csproj`, `D
 </PropertyGroup>
 ```
 
-#### Specification Version
-
-```xml
-<PropertyGroup>
-  <!-- CycloneDX spec version: 1.2, 1.3, 1.4, 1.5, or 1.6 (default) -->
-  <CycloneDxSpecVersion>1.5</CycloneDxSpecVersion>
-</PropertyGroup>
-```
-
 ### Advanced Options
 
 #### Exclude Dependencies
@@ -132,21 +123,25 @@ All configuration is done via MSBuild properties. Set them in your `.csproj`, `D
 </PropertyGroup>
 ```
 
-#### License Information
+#### Serial Number Control
 
 ```xml
 <PropertyGroup>
-  <!-- Include full license text (default: false, only IDs) -->
-  <CycloneDxIncludeLicenseText>true</CycloneDxIncludeLicenseText>
+  <!-- Disable auto-generated SBOM serial number -->
+  <CycloneDxDisableSerialNumber>true</CycloneDxDisableSerialNumber>
 </PropertyGroup>
 ```
 
-#### Serial Number
+#### GitHub License Resolution
 
 ```xml
 <PropertyGroup>
-  <!-- Set custom SBOM serial number (UUID) -->
-  <CycloneDxSerialNumber>urn:uuid:12345678-1234-1234-1234-123456789abc</CycloneDxSerialNumber>
+  <!-- Enable GitHub license resolution -->
+  <CycloneDxEnableGitHubLicenses>true</CycloneDxEnableGitHubLicenses>
+
+  <!-- GitHub credentials (optional, for higher rate limits) -->
+  <CycloneDxGitHubUsername>your-username</CycloneDxGitHubUsername>
+  <CycloneDxGitHubToken>ghp_yourtoken</CycloneDxGitHubToken>
 </PropertyGroup>
 ```
 
@@ -172,7 +167,7 @@ Consumers of your NuGet package can inspect the SBOM:
 ```bash
 # Extract and view
 unzip -q MyPackage.1.0.0.nupkg -d extracted
-cat extracted/sbom/bom.json
+cat extracted/sbom/sbom.json
 ```
 
 ## 🏗️ Architecture
@@ -274,7 +269,7 @@ Contributions are welcome! Please feel free to submit issues, feature requests, 
 
 ## 📄 License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🔗 Related Projects
 

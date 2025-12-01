@@ -33,33 +33,13 @@
       <_CycloneDxValidationFailed>false</_CycloneDxValidationFailed>
     </PropertyGroup>
 
-    <!-- Define valid output formats and spec versions -->
-    <ItemGroup>
-      <_ValidCycloneDxOutputFormat Include="json" />
-      <_ValidCycloneDxOutputFormat Include="xml" />
-      <_ValidCycloneDxSpecVersion Include="1.2" />
-      <_ValidCycloneDxSpecVersion Include="1.3" />
-      <_ValidCycloneDxSpecVersion Include="1.4" />
-      <_ValidCycloneDxSpecVersion Include="1.5" />
-      <_ValidCycloneDxSpecVersion Include="1.6" />
-    </ItemGroup>
-
     <!-- Validate output format -->
     <Warning
-      Condition="! $([MSBuild]::Contains('@(_ValidCycloneDxOutputFormat)', '$(CycloneDxOutputFormat)'))"
-      Text="[CycloneDX] Invalid output format '$(CycloneDxOutputFormat)'. Supported formats: @( _ValidCycloneDxOutputFormat->', ' ). Defaulting to json." />
+      Condition="'$(CycloneDxOutputFormat)' != 'json' AND '$(CycloneDxOutputFormat)' != 'xml'"
+      Text="[CycloneDX] Invalid output format '$(CycloneDxOutputFormat)'. Supported formats: json, xml. Defaulting to json." />
 
-    <PropertyGroup Condition="! $([MSBuild]::Contains('@(_ValidCycloneDxOutputFormat)', '$(CycloneDxOutputFormat)'))">
+    <PropertyGroup Condition="'$(CycloneDxOutputFormat)' != 'json' AND '$(CycloneDxOutputFormat)' != 'xml'">
       <CycloneDxOutputFormat>json</CycloneDxOutputFormat>
-    </PropertyGroup>
-
-    <!-- Validate spec version -->
-    <Warning
-      Condition="! $([MSBuild]::Contains('@(_ValidCycloneDxSpecVersion)', '$(CycloneDxSpecVersion)'))"
-      Text="[CycloneDX] Invalid spec version '$(CycloneDxSpecVersion)'. Supported: @( _ValidCycloneDxSpecVersion->', ' ). Defaulting to 1.6." />
-
-    <PropertyGroup Condition="! $([MSBuild]::Contains('@(_ValidCycloneDxSpecVersion)', '$(CycloneDxSpecVersion)'))">
-      <CycloneDxSpecVersion>1.6</CycloneDxSpecVersion>
     </PropertyGroup>
 
     <!-- Ensure output directory exists -->
@@ -125,20 +105,40 @@
 
     <Message Importance="high" Text="[CycloneDX] Generating SBOM for $(MSBuildProjectName)..." />
 
+    <!-- Set output directory default now, when $(OutputPath) is available -->
+    <PropertyGroup>
+      <CycloneDxOutputDirectory Condition="'$(CycloneDxOutputDirectory)' == ''">$(OutputPath)</CycloneDxOutputDirectory>
+      <!-- Remove trailing backslash/slash to avoid escaping the closing quote in command-line arguments -->
+      <CycloneDxOutputDirectory>$(CycloneDxOutputDirectory.TrimEnd('\\').TrimEnd('/'))</CycloneDxOutputDirectory>
+    </PropertyGroup>
+
     <PropertyGroup>
       <!-- Build command line arguments -->
       <_CycloneDxArgs></_CycloneDxArgs>
       <_CycloneDxArgs>$(_CycloneDxArgs) "$(MSBuildProjectFullPath)"</_CycloneDxArgs>
-      <_CycloneDxArgs>$(_CycloneDxArgs) --output-directory "$(CycloneDxOutputDirectory)"</_CycloneDxArgs>
-      <_CycloneDxArgs>$(_CycloneDxArgs) --output-filename "$(CycloneDxOutputFilename)"</_CycloneDxArgs>
-      <_CycloneDxArgs>$(_CycloneDxArgs) --output-format $(CycloneDxOutputFormat)</_CycloneDxArgs>
-      <_CycloneDxArgs>$(_CycloneDxArgs) --spec-version $(CycloneDxSpecVersion)</_CycloneDxArgs>
+      <_CycloneDxArgs>$(_CycloneDxArgs) -o "$(CycloneDxOutputDirectory)"</_CycloneDxArgs>
+
+      <!-- Build full filename with extension based on format -->
+      <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'json'">$(CycloneDxOutputFilename).json</_CycloneDxFullFilename>
+      <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'xml'">$(CycloneDxOutputFilename).xml</_CycloneDxFullFilename>
+      <!-- Fallback to json if format is invalid -->
+      <_CycloneDxFullFilename Condition="'$(_CycloneDxFullFilename)' == ''">$(CycloneDxOutputFilename).json</_CycloneDxFullFilename>
+      <_CycloneDxArgs>$(_CycloneDxArgs) -fn "$(_CycloneDxFullFilename)"</_CycloneDxArgs>
+
+      <!-- Output format: json or xml (capitalize first letter for tool) -->
+      <_CycloneDxOutputFormat Condition="'$(CycloneDxOutputFormat)' == 'json'">Json</_CycloneDxOutputFormat>
+      <_CycloneDxOutputFormat Condition="'$(CycloneDxOutputFormat)' == 'xml'">Xml</_CycloneDxOutputFormat>
+      <!-- Fallback to Json if format is invalid -->
+      <_CycloneDxOutputFormat Condition="'$(_CycloneDxOutputFormat)' == ''">Json</_CycloneDxOutputFormat>
+      <_CycloneDxArgs>$(_CycloneDxArgs) -F $(_CycloneDxOutputFormat)</_CycloneDxArgs>
 
       <!-- Optional arguments -->
-      <_CycloneDxArgs Condition="'$(CycloneDxExcludeDev)' == 'true'">$(_CycloneDxArgs) --exclude-dev</_CycloneDxArgs>
-      <_CycloneDxArgs Condition="'$(CycloneDxExcludeTestProjects)' == 'true'">$(_CycloneDxArgs) --exclude-test-projects</_CycloneDxArgs>
-      <_CycloneDxArgs Condition="'$(CycloneDxIncludeLicenseText)' == 'true'">$(_CycloneDxArgs) --include-license-text</_CycloneDxArgs>
-      <_CycloneDxArgs Condition="'$(CycloneDxSerialNumber)' != ''">$(_CycloneDxArgs) --serial-number $(CycloneDxSerialNumber)</_CycloneDxArgs>
+      <_CycloneDxArgs Condition="'$(CycloneDxExcludeDev)' == 'true'">$(_CycloneDxArgs) -ed</_CycloneDxArgs>
+      <_CycloneDxArgs Condition="'$(CycloneDxExcludeTestProjects)' == 'true'">$(_CycloneDxArgs) -t</_CycloneDxArgs>
+      <_CycloneDxArgs Condition="'$(CycloneDxDisableSerialNumber)' == 'true'">$(_CycloneDxArgs) -ns</_CycloneDxArgs>
+      <_CycloneDxArgs Condition="'$(CycloneDxEnableGitHubLicenses)' == 'true'">$(_CycloneDxArgs) -egl</_CycloneDxArgs>
+      <_CycloneDxArgs Condition="'$(CycloneDxGitHubUsername)' != ''">$(_CycloneDxArgs) -gu "$(CycloneDxGitHubUsername)"</_CycloneDxArgs>
+      <_CycloneDxArgs Condition="'$(CycloneDxGitHubToken)' != ''">$(_CycloneDxArgs) -gt "$(CycloneDxGitHubToken)"</_CycloneDxArgs>
     </PropertyGroup>
 
     <!-- Execute CycloneDX tool -->
