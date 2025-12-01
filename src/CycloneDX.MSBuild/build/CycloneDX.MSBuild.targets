@@ -1,76 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!--
-    CycloneDX.MSBuild Targets
-
-    This file defines MSBuild targets for automatic CycloneDX SBOM generation.
-    Targets are executed during the build process to generate SBOMs.
-
-    Security by Design:
-    - Tool runs in build context without elevated permissions
-    - Input validation on all properties
-    - Fail-safe defaults (continue on error)
-    - No arbitrary command execution
-
-    Clean Code Principles:
-    - Single Responsibility: Each target has one clear purpose
-    - Separation of Concerns: Tool installation, validation, and execution are separate
-    - DRY: Reusable property groups
-  -->
+  <!-- CycloneDX.MSBuild Targets -->
 
   <!-- Target execution order:
        1. ValidateCycloneDxConfiguration (before build)
        2. EnsureCycloneDxToolInstalled (before SBOM generation)
-       3. GenerateCycloneDxSbom (after build, before pack)
+       3. GenerateCycloneDxMetadata (before SBOM generation if metadata requested)
+       4. GenerateCycloneDxSbom (after build, before pack)
   -->
-
-  <!-- Inline task to URL-encode component name and version -->
-  <UsingTask TaskName="UrlEncodeCycloneDxProps" TaskFactory="CodeTaskFactory" AssemblyName="Microsoft.Build.Tasks.Core">
-    <ParameterGroup>
-      <ComponentName ParameterType="System.String" Required="true" />
-      <Version ParameterType="System.String" Required="true" />
-      <EncodedComponentName ParameterType="System.String" Output="true" />
-      <EncodedVersion ParameterType="System.String" Output="true" />
-    </ParameterGroup>
-    <Task>
-      <Reference Include="System" />
-      <Code Type="Fragment" Language="cs">
-        <![CDATA[
-        EncodedComponentName = System.Uri.EscapeDataString(ComponentName ?? "");
-        EncodedVersion = System.Uri.EscapeDataString(Version ?? "");
-        ]]>
-      </Code>
-    </Task>
-  </UsingTask>
-
-  <!-- Inline task to XML-escape strings -->
-  <UsingTask TaskName="XmlEscapeCycloneDxProps" TaskFactory="CodeTaskFactory" AssemblyName="Microsoft.Build.Tasks.Core">
-    <ParameterGroup>
-      <InputString ParameterType="System.String" Required="true" />
-      <EscapedString ParameterType="System.String" Output="true" />
-    </ParameterGroup>
-    <Task>
-      <Reference Include="System.Xml" />
-      <Code Type="Fragment" Language="cs">
-        <![CDATA[
-        if (!string.IsNullOrEmpty(InputString))
-        {
-            EscapedString = InputString
-                .Replace("&", "&amp;")
-                .Replace("<", "&lt;")
-                .Replace(">", "&gt;")
-                .Replace("\"", "&quot;")
-                .Replace("'", "&apos;");
-        }
-        else
-        {
-            EscapedString = "";
-        }
-        ]]>
-      </Code>
-    </Task>
-  </UsingTask>
 
   <Target Name="ValidateCycloneDxConfiguration"
           BeforeTargets="Build"
@@ -148,139 +86,54 @@
 
   <Target Name="GenerateCycloneDxMetadata"
           BeforeTargets="GenerateCycloneDxSbom"
-          Condition="'$(GenerateCycloneDxSbom)' == 'true' AND '$(CycloneDxGenerateMetadata)' == 'true' AND '$(CycloneDxImportMetadataPath)' == ''">
+          Condition="'$(GenerateCycloneDxSbom)' == 'true' AND '$(CycloneDxGenerateMetadata)' == 'true' AND '$(CycloneDxImportMetadataPath)' == '' AND '$(MSBuildRuntimeType)' != 'Core'">
 
+    <!-- Collect raw values -->
     <PropertyGroup>
-      <!-- Generate temporary metadata file path -->
       <_CycloneDxTempMetadataPath>$(IntermediateOutputPath)cyclonedx-metadata.xml</_CycloneDxTempMetadataPath>
-
-      <!-- Extract version from various possible sources -->
       <_CycloneDxVersion Condition="'$(Version)' != ''">$(Version)</_CycloneDxVersion>
       <_CycloneDxVersion Condition="'$(_CycloneDxVersion)' == '' AND '$(VersionPrefix)' != ''">$(VersionPrefix)</_CycloneDxVersion>
       <_CycloneDxVersion Condition="'$(_CycloneDxVersion)' == '' AND '$(AssemblyVersion)' != ''">$(AssemblyVersion)</_CycloneDxVersion>
       <_CycloneDxVersion Condition="'$(_CycloneDxVersion)' == '' AND '$(GitVersion_FullSemVer)' != ''">$(GitVersion_FullSemVer)</_CycloneDxVersion>
       <_CycloneDxVersion Condition="'$(_CycloneDxVersion)' == '' AND '$(GitVersion_SemVer)' != ''">$(GitVersion_SemVer)</_CycloneDxVersion>
       <_CycloneDxVersion Condition="'$(_CycloneDxVersion)' == ''">1.0.0</_CycloneDxVersion>
-
-      <!-- Extract component name -->
       <_CycloneDxComponentName Condition="'$(AssemblyName)' != ''">$(AssemblyName)</_CycloneDxComponentName>
       <_CycloneDxComponentName Condition="'$(_CycloneDxComponentName)' == ''">$(MSBuildProjectName)</_CycloneDxComponentName>
-
-      <!-- Extract authors/company -->
       <_CycloneDxAuthors Condition="'$(Authors)' != ''">$(Authors)</_CycloneDxAuthors>
       <_CycloneDxAuthors Condition="'$(_CycloneDxAuthors)' == '' AND '$(Company)' != ''">$(Company)</_CycloneDxAuthors>
-
-      <!-- Extract description -->
       <_CycloneDxDescription Condition="'$(Description)' != ''">$(Description)</_CycloneDxDescription>
       <_CycloneDxDescription Condition="'$(_CycloneDxDescription)' == '' AND '$(PackageDescription)' != ''">$(PackageDescription)</_CycloneDxDescription>
-
-      <!-- Extract copyright -->
       <_CycloneDxCopyright Condition="'$(Copyright)' != ''">$(Copyright)</_CycloneDxCopyright>
-
-      <!-- Extract license -->
       <_CycloneDxLicense Condition="'$(PackageLicenseExpression)' != ''">$(PackageLicenseExpression)</_CycloneDxLicense>
-
-      <!-- Build package URL (purl) -->
     </PropertyGroup>
 
-    <UrlEncodeCycloneDxProps
-      ComponentName="$(_CycloneDxComponentName)"
-      Version="$(_CycloneDxVersion)">
-      <Output TaskParameter="EncodedComponentName" PropertyName="_CycloneDxComponentNameEncoded" />
-      <Output TaskParameter="EncodedVersion" PropertyName="_CycloneDxVersionEncoded" />
-    </UrlEncodeCycloneDxProps>
-
+    <!-- URL encode component name + version (basic passthrough, no inline tasks) -->
     <PropertyGroup>
+      <_CycloneDxComponentNameEncoded>$(_CycloneDxComponentName)</_CycloneDxComponentNameEncoded>
+      <_CycloneDxVersionEncoded>$(_CycloneDxVersion)</_CycloneDxVersionEncoded>
       <_CycloneDxPurl>pkg:nuget/$(_CycloneDxComponentNameEncoded)@$(_CycloneDxVersionEncoded)</_CycloneDxPurl>
     </PropertyGroup>
 
-    <!-- Escape all values for XML -->
-    <XmlEscapeCycloneDxProps InputString="$(_CycloneDxPurl)">
-      <Output TaskParameter="EscapedString" PropertyName="_CycloneDxPurlEscaped" />
-    </XmlEscapeCycloneDxProps>
-    
-    <XmlEscapeCycloneDxProps InputString="$(_CycloneDxComponentName)">
-      <Output TaskParameter="EscapedString" PropertyName="_CycloneDxComponentNameEscaped" />
-    </XmlEscapeCycloneDxProps>
-    
-    <XmlEscapeCycloneDxProps InputString="$(_CycloneDxVersion)">
-      <Output TaskParameter="EscapedString" PropertyName="_CycloneDxVersionEscaped" />
-    </XmlEscapeCycloneDxProps>
-    
-    <XmlEscapeCycloneDxProps InputString="$(_CycloneDxDescription)" Condition="'$(_CycloneDxDescription)' != ''">
-      <Output TaskParameter="EscapedString" PropertyName="_CycloneDxDescriptionEscaped" />
-    </XmlEscapeCycloneDxProps>
-    
-    <XmlEscapeCycloneDxProps InputString="$(_CycloneDxAuthors)" Condition="'$(_CycloneDxAuthors)' != ''">
-      <Output TaskParameter="EscapedString" PropertyName="_CycloneDxAuthorsEscaped" />
-    </XmlEscapeCycloneDxProps>
-    
-    <XmlEscapeCycloneDxProps InputString="$(_CycloneDxCopyright)" Condition="'$(_CycloneDxCopyright)' != ''">
-      <Output TaskParameter="EscapedString" PropertyName="_CycloneDxCopyrightEscaped" />
-    </XmlEscapeCycloneDxProps>
-    
-    <XmlEscapeCycloneDxProps InputString="$(_CycloneDxLicense)" Condition="'$(_CycloneDxLicense)' != ''">
-      <Output TaskParameter="EscapedString" PropertyName="_CycloneDxLicenseEscaped" />
-    </XmlEscapeCycloneDxProps>
-    
-    <Message Importance="low" Text="[CycloneDX] Generating metadata from assembly information..." />
-    <Message Importance="low" Text="[CycloneDX] Version: $(_CycloneDxVersion)" />
-    <Message Importance="low" Text="[CycloneDX] Name: $(_CycloneDxComponentName)" />
-    <Message Importance="low" Text="[CycloneDX] Authors: $(_CycloneDxAuthors)" Condition="'$(_CycloneDxAuthors)' != ''" />
-
-    <!-- Build metadata XML content using escaped values without CDATA interleaving -->
+    <!-- Build metadata XML content (no special char escaping) -->
     <PropertyGroup>
-      <_CycloneDxMetadataContent>
-        &lt;?xml version="1.0" encoding="utf-8"?&gt;
-        &lt;bom xmlns="http://cyclonedx.org/schema/bom/1.6"&gt;
-          &lt;metadata&gt;
-            &lt;component type="application" bom-ref="$(_CycloneDxPurlEscaped)"&gt;
-              &lt;name&gt;$(_CycloneDxComponentNameEscaped)&lt;/name&gt;
-              &lt;version&gt;$(_CycloneDxVersionEscaped)&lt;/version&gt;
-            </_CycloneDxMetadataContent>
-
-      <!-- Add description if available -->
-      <_CycloneDxMetadataContent Condition="'$(_CycloneDxDescription)' != ''">$(_CycloneDxMetadataContent) &lt;description&gt;$(_CycloneDxDescriptionEscaped)&lt;/description&gt;</_CycloneDxMetadataContent>
-
-      <!-- Add authors/supplier if available -->
-      <_CycloneDxMetadataContent Condition="'$(_CycloneDxAuthors)' != ''">$(_CycloneDxMetadataContent)
-        &lt;supplier&gt;
-          &lt;name&gt;$(_CycloneDxAuthorsEscaped)&lt;/name&gt;
-        &lt;/supplier&gt;</_CycloneDxMetadataContent>
-
-      <!-- Add copyright if available -->
-      <_CycloneDxMetadataContent Condition="'$(_CycloneDxCopyright)' != ''">$(_CycloneDxMetadataContent) &lt;copyright&gt;$(_CycloneDxCopyrightEscaped)&lt;/copyright&gt;</_CycloneDxMetadataContent>
-
-      <!-- Add license if available -->
-      <_CycloneDxMetadataContent Condition="'$(_CycloneDxLicense)' != ''">$(_CycloneDxMetadataContent)
-        &lt;licenses&gt;
-          &lt;license&gt;
-            &lt;id&gt;$(_CycloneDxLicenseEscaped)&lt;/id&gt;
-          &lt;/license&gt;
-        &lt;/licenses&gt;</_CycloneDxMetadataContent>
-
-      <!-- Add purl and close tags -->
-      <_CycloneDxMetadataContent>$(_CycloneDxMetadataContent)
-        &lt;purl&gt;$(_CycloneDxPurlEscaped)&lt;/purl&gt;
-      &lt;/component&gt;
-    &lt;/metadata&gt;
-  &lt;/bom&gt;</_CycloneDxMetadataContent>
+      <_CycloneDxMetadataContent>&lt;?xml version="1.0" encoding="utf-8"?&gt;&lt;bom xmlns="http://cyclonedx.org/schema/bom/1.6"&gt;&lt;metadata&gt;&lt;component type="application" bom-ref="$(_CycloneDxPurl)"&gt;&lt;name&gt;$(_CycloneDxComponentName)&lt;/name&gt;&lt;version&gt;$(_CycloneDxVersion)&lt;/version&gt;</_CycloneDxMetadataContent>
+      <_CycloneDxMetadataContent Condition="'$(_CycloneDxDescription)' != ''">$(_CycloneDxMetadataContent)&lt;description&gt;$(_CycloneDxDescription)&lt;/description&gt;</_CycloneDxMetadataContent>
+      <_CycloneDxMetadataContent Condition="'$(_CycloneDxAuthors)' != ''">$(_CycloneDxMetadataContent)&lt;supplier&gt;&lt;name&gt;$(_CycloneDxAuthors)&lt;/name&gt;&lt;/supplier&gt;</_CycloneDxMetadataContent>
+      <_CycloneDxMetadataContent Condition="'$(_CycloneDxCopyright)' != ''">$(_CycloneDxMetadataContent)&lt;copyright&gt;$(_CycloneDxCopyright)&lt;/copyright&gt;</_CycloneDxMetadataContent>
+      <_CycloneDxMetadataContent Condition="'$(_CycloneDxLicense)' != ''">$(_CycloneDxMetadataContent)&lt;licenses&gt;&lt;license&gt;&lt;id&gt;$(_CycloneDxLicense)&lt;/id&gt;&lt;/license&gt;&lt;/licenses&gt;</_CycloneDxMetadataContent>
+      <_CycloneDxMetadataContent>$(_CycloneDxMetadataContent)&lt;purl&gt;$(_CycloneDxPurl)&lt;/purl&gt;&lt;/component&gt;&lt;/metadata&gt;&lt;/bom&gt;</_CycloneDxMetadataContent>
     </PropertyGroup>
 
-    <!-- Write metadata to temporary file -->
-    <WriteLinesToFile
-      File="$(_CycloneDxTempMetadataPath)"
-      Lines="$(_CycloneDxMetadataContent)"
-      Overwrite="true"
-      WriteOnlyWhenDifferent="true" />
+    <WriteLinesToFile File="$(_CycloneDxTempMetadataPath)"
+                      Lines="$(_CycloneDxMetadataContent)"
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
 
-    <!-- Set the import path to the generated metadata file -->
     <PropertyGroup>
       <CycloneDxImportMetadataPath>$(_CycloneDxTempMetadataPath)</CycloneDxImportMetadataPath>
     </PropertyGroup>
 
     <Message Importance="low" Text="[CycloneDX] Metadata template generated: $(_CycloneDxTempMetadataPath)" />
-
   </Target>
 
   <Target Name="GenerateCycloneDxSbom"
@@ -289,34 +142,23 @@
 
     <Message Importance="high" Text="[CycloneDX] Generating SBOM for $(MSBuildProjectName)..." />
 
-    <!-- Set output directory default now, when $(OutputPath) is available -->
     <PropertyGroup>
       <CycloneDxOutputDirectory Condition="'$(CycloneDxOutputDirectory)' == ''">$(OutputPath)</CycloneDxOutputDirectory>
-      <!-- Remove trailing backslash/slash to avoid escaping the closing quote in command-line arguments -->
-      <CycloneDxOutputDirectory>$(CycloneDxOutputDirectory.TrimEnd('\\').TrimEnd('/'))</CycloneDxOutputDirectory>
+      <CycloneDxOutputDirectory>$(CycloneDxOutputDirectory.TrimEnd('\').TrimEnd('/'))</CycloneDxOutputDirectory>
     </PropertyGroup>
 
     <PropertyGroup>
-      <!-- Build command line arguments -->
       <_CycloneDxArgs></_CycloneDxArgs>
       <_CycloneDxArgs>$(_CycloneDxArgs) "$(MSBuildProjectFullPath)"</_CycloneDxArgs>
       <_CycloneDxArgs>$(_CycloneDxArgs) -o "$(CycloneDxOutputDirectory)"</_CycloneDxArgs>
-
-      <!-- Build full filename with extension based on format -->
       <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'json'">$(CycloneDxOutputFilename).json</_CycloneDxFullFilename>
       <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'xml'">$(CycloneDxOutputFilename).xml</_CycloneDxFullFilename>
-      <!-- Fallback to json if format is invalid -->
       <_CycloneDxFullFilename Condition="'$(_CycloneDxFullFilename)' == ''">$(CycloneDxOutputFilename).json</_CycloneDxFullFilename>
       <_CycloneDxArgs>$(_CycloneDxArgs) -fn "$(_CycloneDxFullFilename)"</_CycloneDxArgs>
-
-      <!-- Output format: json or xml (capitalize first letter for tool) -->
       <_CycloneDxOutputFormat Condition="'$(CycloneDxOutputFormat)' == 'json'">Json</_CycloneDxOutputFormat>
       <_CycloneDxOutputFormat Condition="'$(CycloneDxOutputFormat)' == 'xml'">Xml</_CycloneDxOutputFormat>
-      <!-- Fallback to Json if format is invalid -->
       <_CycloneDxOutputFormat Condition="'$(_CycloneDxOutputFormat)' == ''">Json</_CycloneDxOutputFormat>
       <_CycloneDxArgs>$(_CycloneDxArgs) -F $(_CycloneDxOutputFormat)</_CycloneDxArgs>
-
-      <!-- Optional arguments -->
       <_CycloneDxArgs Condition="'$(CycloneDxExcludeDev)' == 'true'">$(_CycloneDxArgs) -ed</_CycloneDxArgs>
       <_CycloneDxArgs Condition="'$(CycloneDxExcludeTestProjects)' == 'true'">$(_CycloneDxArgs) -t</_CycloneDxArgs>
       <_CycloneDxArgs Condition="'$(CycloneDxDisableSerialNumber)' == 'true'">$(_CycloneDxArgs) -ns</_CycloneDxArgs>
@@ -326,21 +168,15 @@
       <_CycloneDxArgs Condition="'$(CycloneDxImportMetadataPath)' != ''">$(_CycloneDxArgs) -imp "$(CycloneDxImportMetadataPath)"</_CycloneDxArgs>
     </PropertyGroup>
 
-    <!-- Execute CycloneDX tool -->
-    <Exec
-      Command="dotnet cyclonedx $(_CycloneDxArgs)"
-      WorkingDirectory="$(MSBuildProjectDirectory)"
-      ContinueOnError="$(CycloneDxContinueOnError)"
-      StandardOutputImportance="normal"
-      StandardErrorImportance="high">
+    <Exec Command="dotnet cyclonedx $(_CycloneDxArgs)"
+          WorkingDirectory="$(MSBuildProjectDirectory)"
+          ContinueOnError="$(CycloneDxContinueOnError)"
+          StandardOutputImportance="normal"
+          StandardErrorImportance="high">
       <Output TaskParameter="ExitCode" PropertyName="_CycloneDxGenerateExitCode" />
     </Exec>
 
-    <!-- Report success or failure -->
-    <Message
-      Importance="high"
-      Condition="'$(_CycloneDxGenerateExitCode)' == '0'"
-      Text="[CycloneDX] SBOM generated successfully: $(CycloneDxOutputPath)" />
+    <Message Importance="high" Condition="'$(_CycloneDxGenerateExitCode)' == '0'" Text="[CycloneDX] SBOM generated successfully: $(CycloneDxOutputPath)" />
 
     <Warning
       Condition="'$(_CycloneDxGenerateExitCode)' != '0' AND '$(CycloneDxContinueOnError)' == 'true'"
@@ -352,7 +188,6 @@
 
   </Target>
 
-  <!-- Optional: Include SBOM in NuGet package -->
   <Target Name="IncludeCycloneDxSbomInPackage"
           BeforeTargets="GenerateNuspec"
           Condition="'$(GenerateCycloneDxSbom)' == 'true' AND '$(IsPackable)' != 'false'">
@@ -368,25 +203,20 @@
 
   </Target>
 
-  <!-- Copy SBOM to publish directory after publish -->
   <Target Name="CopyCycloneDxSbomToPublishDirectory"
           AfterTargets="Publish"
           Condition="'$(GenerateCycloneDxSbom)' == 'true' and '$(PublishDir)' != ''">
 
     <PropertyGroup>
-      <!-- Determine the target path in publish directory -->
       <_CycloneDxPublishPath>$(PublishDir)$(_CycloneDxFullFilename)</_CycloneDxPublishPath>
     </PropertyGroup>
 
     <Message Importance="normal" Text="[CycloneDX] Copying SBOM to publish directory..." />
 
-    <!-- Copy the SBOM file to publish directory -->
-    <Copy
-      SourceFiles="$(CycloneDxOutputPath)"
-      DestinationFiles="$(_CycloneDxPublishPath)"
-      SkipUnchangedFiles="true"
-      Condition="Exists('$(CycloneDxOutputPath)')">
-    </Copy>
+    <Copy SourceFiles="$(CycloneDxOutputPath)"
+          DestinationFiles="$(_CycloneDxPublishPath)"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(CycloneDxOutputPath)')" />
 
     <Message
       Importance="high"
