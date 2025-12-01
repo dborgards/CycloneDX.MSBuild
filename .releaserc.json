@@ -128,7 +128,7 @@
       "@semantic-release/exec",
       {
         "prepareCmd": "dotnet pack src/CycloneDX.MSBuild/CycloneDX.MSBuild.csproj -c Release -p:Version=${nextRelease.version} -o ./artifacts",
-        "publishCmd": "dotnet nuget push ./artifacts/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGET_API_KEY} --skip-duplicate || true"
+        "publishCmd": "dotnet nuget push ./artifacts/*.nupkg --source https://api.nuget.org/v3/index.json --api-key $NUGET_API_KEY --skip-duplicate || true"
       }
     ],
     [
