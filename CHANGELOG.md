@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/dborgards/CycloneDX.MSBuild/compare/v1.0.0...v1.0.1) (2025-12-01)
+
+### 🐛 Bug Fixes
+
+* correct NUGET_API_KEY syntax in semantic-release config ([254236c](https://github.com/dborgards/CycloneDX.MSBuild/commit/254236c6148c6151dde5c3180f67b5fdf1cd0f61))
+
 ## 1.0.0 (2025-12-01)
 
 ### ✨ Features
