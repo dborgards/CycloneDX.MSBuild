@@ -187,7 +187,7 @@
   <!-- Copy SBOM to publish directory after publish -->
   <Target Name="CopyCycloneDxSbomToPublishDirectory"
           AfterTargets="Publish"
-          Condition="'$(GenerateCycloneDxSbom)' == 'true' AND '$(PublishDir)' != ''">
+          Condition="'$(GenerateCycloneDxSbom)' == 'true' and '$(PublishDir)' != ''">
 
     <PropertyGroup>
       <!-- Determine the target path in publish directory -->
