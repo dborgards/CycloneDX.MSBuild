@@ -1,19 +1,18 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <!-- Package Identity -->
     <PackageId>CycloneDX.MSBuild</PackageId>
-    <Authors>CycloneDX Community</Authors>
-    <Company>CycloneDX</Company>
+    <Authors>Dietmar Borgards</Authors>
 
     <!-- Package Description -->
     <Title>CycloneDX MSBuild Targets</Title>
     <Description>MSBuild targets for automatic CycloneDX SBOM generation during build and pack operations. Integrates the CycloneDX .NET tool seamlessly into your build pipeline.</Description>
     <PackageTags>cyclonedx;sbom;msbuild;targets;security;supply-chain;bom</PackageTags>
-    <PackageProjectUrl>https://github.com/CycloneDX/cyclonedx-msbuild</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/CycloneDX/cyclonedx-msbuild</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/dborgards/CycloneDX.MSBuild</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/dborgards/CycloneDX.MSBuild</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseExpression>LICENSE</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <!-- Build Configuration -->
@@ -38,8 +37,9 @@
     <None Include="build\**" Pack="true" PackagePath="build\" />
     <None Include="buildMultiTargeting\**" Pack="true" PackagePath="buildMultiTargeting\" />
 
-    <!-- Include README -->
+    <!-- Include README / LICENSE -->
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <!-- Package validation and security -->
