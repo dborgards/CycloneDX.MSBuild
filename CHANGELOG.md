@@ -1,3 +1,9 @@
+## [1.0.2](https://github.com/dborgards/CycloneDX.MSBuild/compare/v1.0.1...v1.0.2) (2025-12-01)
+
+### 🐛 Bug Fixes
+
+* remove MinVer to allow semantic-release version control ([8fbafe6](https://github.com/dborgards/CycloneDX.MSBuild/commit/8fbafe607956d4f3b3a51b6e26730e4edc0c6195))
+
 ## [1.0.1](https://github.com/dborgards/CycloneDX.MSBuild/compare/v1.0.0...v1.0.1) (2025-12-01)
 
 ### 🐛 Bug Fixes
