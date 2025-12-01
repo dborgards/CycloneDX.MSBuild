@@ -47,6 +47,17 @@ jobs:
       - name: Build project
         run: dotnet build -c Release --no-restore
 
+      - name: Build and validate test projects
+        run: |
+          echo "Building integration test projects to validate SBOM generation..."
+          dotnet build tests/Integration.Tests/SimpleProject/SimpleProject.csproj -c Release --no-restore
+          dotnet build tests/Integration.Tests/MultiTargetProject/MultiTargetProject.csproj -c Release --no-restore
+          dotnet build tests/Integration.Tests/DisabledProject/DisabledProject.csproj -c Release --no-restore
+          echo "All test projects built successfully!"
+
+      - name: Validate package
+        run: dotnet pack src/CycloneDX.MSBuild/CycloneDX.MSBuild.csproj -c Release --no-build -p:EnablePackageValidation=true
+
       - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
