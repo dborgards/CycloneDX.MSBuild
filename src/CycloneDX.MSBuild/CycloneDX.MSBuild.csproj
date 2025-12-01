@@ -12,7 +12,7 @@
     <PackageProjectUrl>https://github.com/dborgards/CycloneDX.MSBuild</PackageProjectUrl>
     <RepositoryUrl>https://github.com/dborgards/CycloneDX.MSBuild</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageLicenseExpression>LICENSE</PackageLicenseExpression>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <!-- Build Configuration -->
