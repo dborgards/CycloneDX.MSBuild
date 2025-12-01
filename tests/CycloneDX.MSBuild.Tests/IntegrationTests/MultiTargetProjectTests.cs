@@ -114,20 +114,23 @@ public class MultiTargetProjectTests : IDisposable
         var buildSbomPath = Path.Combine(_projectDirectory, "bin", "sbom", "sbom.json");
         File.Exists(buildSbomPath).Should().BeTrue($"SBOM should exist after build at {buildSbomPath}");
 
-        // Act
-        var publishResult = _builder.Publish("Debug");
+        // Act - Multi-target projects require specifying a framework for publish
+        var publishProperties = new Dictionary<string, string>
+        {
+            ["TargetFramework"] = "net8.0"
+        };
+        var publishResult = _builder.Publish("Debug", publishProperties);
 
         // Assert
         publishResult.Success.Should().BeTrue($"Publish should succeed. Output: {publishResult.Output}");
 
-        // For multi-target, publish should copy SBOM to each framework's publish directory
-        // Check at least one publish directory
+        // For multi-target publish with specific framework, SBOM should be copied to that framework's publish directory
         var net8PublishPath = Path.Combine(_projectDirectory, "bin", "Debug", "net8.0", "publish", "sbom.json");
+        File.Exists(net8PublishPath).Should().BeTrue($"SBOM should be copied to net8.0 publish directory at {net8PublishPath}. Publish output: {publishResult.Output}");
 
-        // Note: The exact behavior might depend on how publish works with multi-target
-        // At minimum, the SBOM should exist in the custom output location
+        // The SBOM should also still exist in the custom output location from build
         var customSbomPath = Path.Combine(_projectDirectory, "bin", "sbom", "sbom.json");
-        File.Exists(customSbomPath).Should().BeTrue($"SBOM should exist in custom output directory. Publish output: {publishResult.Output}");
+        File.Exists(customSbomPath).Should().BeTrue($"SBOM should still exist in custom output directory");
     }
 
     public void Dispose()
