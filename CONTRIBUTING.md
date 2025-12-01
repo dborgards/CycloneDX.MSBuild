@@ -28,9 +28,47 @@ This project adheres to the CycloneDX community standards. By participating, you
 3. Make your changes following our coding standards
 4. Add tests for new functionality
 5. Update documentation
-6. Commit with clear messages
+6. **Commit using Conventional Commits format** (see below)
 7. Push to your fork
 8. Open a pull request
+
+### Commit Message Format
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automated versioning and changelog generation.
+
+**Format:**
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer]
+```
+
+**Examples:**
+```bash
+feat: add support for CycloneDX 1.6 specification
+fix: resolve path encoding issue on Windows
+docs: update configuration examples
+refactor: simplify target execution logic
+```
+
+**Common types:**
+- `feat`: New feature (triggers minor version bump)
+- `fix`: Bug fix (triggers patch version bump)
+- `docs`: Documentation changes
+- `refactor`: Code refactoring
+- `test`: Test changes
+- `chore`: Maintenance tasks
+
+For breaking changes, add `!` after type or include `BREAKING CHANGE:` in footer:
+```bash
+feat!: redesign configuration API
+
+BREAKING CHANGE: Property names have changed
+```
+
+📖 See [VERSIONING.md](VERSIONING.md) for complete details.
 
 ## Development Guidelines
 
@@ -108,11 +146,20 @@ Documentation locations:
 
 ## Release Process
 
-1. Update version in `CycloneDX.MSBuild.csproj`
-2. Update `CHANGELOG.md` (if present)
-3. Update `README.md` version references
-4. Create a pull request
-5. After merge, maintainers will create a release tag
+Releases are **fully automated** using semantic-release:
+
+1. Merge pull requests to `main` branch
+2. semantic-release automatically:
+   - Analyzes commits since last release
+   - Determines version bump based on commit types
+   - Generates/updates `CHANGELOG.md`
+   - Creates Git tag
+   - Builds and publishes NuGet package
+   - Creates GitHub Release with release notes
+
+**No manual version bumping required!**
+
+📖 See [VERSIONING.md](VERSIONING.md) for complete details on the automated release workflow.
 
 ## Questions?
 

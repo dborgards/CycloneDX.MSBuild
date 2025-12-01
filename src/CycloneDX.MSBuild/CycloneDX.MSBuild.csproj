@@ -3,7 +3,6 @@
   <PropertyGroup>
     <!-- Package Identity -->
     <PackageId>CycloneDX.MSBuild</PackageId>
-    <Version>1.0.0</Version>
     <Authors>CycloneDX Community</Authors>
     <Company>CycloneDX</Company>
 
@@ -41,6 +40,14 @@
 
     <!-- Include README -->
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Automatic versioning from Git tags -->
+    <PackageReference Include="MinVer" Version="6.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <!-- Package validation and security -->

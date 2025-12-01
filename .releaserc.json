@@ -1,0 +1,155 @@
+{
+  "branches": [
+    "main",
+    "master",
+    {
+      "name": "beta",
+      "prerelease": true
+    },
+    {
+      "name": "alpha",
+      "prerelease": true
+    }
+  ],
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalcommits",
+        "releaseRules": [
+          {
+            "type": "feat",
+            "release": "minor"
+          },
+          {
+            "type": "fix",
+            "release": "patch"
+          },
+          {
+            "type": "perf",
+            "release": "patch"
+          },
+          {
+            "type": "revert",
+            "release": "patch"
+          },
+          {
+            "type": "docs",
+            "release": "patch"
+          },
+          {
+            "type": "chore",
+            "release": false
+          },
+          {
+            "type": "refactor",
+            "release": "patch"
+          },
+          {
+            "type": "test",
+            "release": false
+          },
+          {
+            "type": "build",
+            "release": false
+          },
+          {
+            "type": "ci",
+            "release": false
+          },
+          {
+            "breaking": true,
+            "release": "major"
+          }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits",
+        "presetConfig": {
+          "types": [
+            {
+              "type": "feat",
+              "section": "✨ Features"
+            },
+            {
+              "type": "fix",
+              "section": "🐛 Bug Fixes"
+            },
+            {
+              "type": "perf",
+              "section": "⚡ Performance Improvements"
+            },
+            {
+              "type": "revert",
+              "section": "⏪ Reverts"
+            },
+            {
+              "type": "docs",
+              "section": "📚 Documentation"
+            },
+            {
+              "type": "refactor",
+              "section": "♻️ Code Refactoring"
+            },
+            {
+              "type": "test",
+              "section": "✅ Tests",
+              "hidden": true
+            },
+            {
+              "type": "build",
+              "section": "🏗️ Build System",
+              "hidden": true
+            },
+            {
+              "type": "ci",
+              "section": "👷 CI/CD",
+              "hidden": true
+            },
+            {
+              "type": "chore",
+              "section": "🔧 Chores",
+              "hidden": true
+            }
+          ]
+        }
+      }
+    ],
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "CHANGELOG.md"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "dotnet pack src/CycloneDX.MSBuild/CycloneDX.MSBuild.csproj -c Release -p:Version=${nextRelease.version} -o ./artifacts",
+        "publishCmd": "dotnet nuget push ./artifacts/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGET_API_KEY} --skip-duplicate || true"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "artifacts/*.nupkg",
+            "label": "NuGet Package"
+          }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md"
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ]
+  ]
+}
