@@ -53,6 +53,7 @@ That's it! Your SBOM will be generated at `bin/Debug/net8.0/sbom.json` (or your 
 SBOMs are generated automatically:
 - **During Build**: After successful compilation
 - **During Pack**: Included in NuGet packages under `/sbom/`
+- **During Publish**: Copied to the publish directory
 - **Multi-Targeting**: Generates once per project, not per framework
 
 ### Supported Output Formats
@@ -209,6 +210,23 @@ unzip -q MyPackage.1.0.0.nupkg -d extracted
 cat extracted/sbom/sbom.json
 ```
 
+## 🚀 Publish Integration
+
+When you run `dotnet publish`, the generated SBOM is automatically copied to the publish directory alongside your application.
+
+```bash
+dotnet publish -c Release
+```
+
+The SBOM will be available in your publish directory:
+
+```bash
+# View the SBOM in publish directory
+cat bin/Release/net8.0/publish/sbom.json
+```
+
+This makes it easy to include the SBOM when deploying your application, ensuring supply chain transparency in production environments.
+
 ## 🏗️ Architecture
 
 ### MSBuild Integration
@@ -333,7 +351,7 @@ dotnet build tests/Integration.Tests/SimpleProject/SimpleProject.csproj
 | **Tool** | Microsoft.Sbom.Tool (embedded) | CycloneDX .NET tool (local tool, installed on demand) |
 | **Build Support** | ✅ | ✅ |
 | **Pack Support** | ✅ | ✅ |
-| **Publish Support** | ❌ | ⏳ Planned |
+| **Publish Support** | ❌ | ✅ |
 | **Multi-Targeting** | ✅ | ✅ |
 | **Development Dependency** | ✅ | ✅ |
 
