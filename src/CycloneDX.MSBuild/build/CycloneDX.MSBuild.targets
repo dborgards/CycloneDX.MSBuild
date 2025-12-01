@@ -139,6 +139,7 @@
       <_CycloneDxArgs Condition="'$(CycloneDxEnableGitHubLicenses)' == 'true'">$(_CycloneDxArgs) -egl</_CycloneDxArgs>
       <_CycloneDxArgs Condition="'$(CycloneDxGitHubUsername)' != ''">$(_CycloneDxArgs) -gu "$(CycloneDxGitHubUsername)"</_CycloneDxArgs>
       <_CycloneDxArgs Condition="'$(CycloneDxGitHubToken)' != ''">$(_CycloneDxArgs) -gt "$(CycloneDxGitHubToken)"</_CycloneDxArgs>
+      <_CycloneDxArgs Condition="'$(CycloneDxImportMetadataPath)' != ''">$(_CycloneDxArgs) -imp "$(CycloneDxImportMetadataPath)"</_CycloneDxArgs>
     </PropertyGroup>
 
     <!-- Execute CycloneDX tool -->
