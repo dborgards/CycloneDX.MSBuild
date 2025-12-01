@@ -25,6 +25,53 @@
        3. GenerateCycloneDxSbom (after build, before pack)
   -->
 
+  <!-- Inline task to URL-encode component name and version -->
+  <UsingTask TaskName="UrlEncodeCycloneDxProps" TaskFactory="CodeTaskFactory" AssemblyName="Microsoft.Build.Tasks.Core">
+    <ParameterGroup>
+      <ComponentName ParameterType="System.String" Required="true" />
+      <Version ParameterType="System.String" Required="true" />
+      <EncodedComponentName ParameterType="System.String" Output="true" />
+      <EncodedVersion ParameterType="System.String" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+        EncodedComponentName = System.Uri.EscapeDataString(ComponentName ?? "");
+        EncodedVersion = System.Uri.EscapeDataString(Version ?? "");
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <!-- Inline task to XML-escape strings -->
+  <UsingTask TaskName="XmlEscapeCycloneDxProps" TaskFactory="CodeTaskFactory" AssemblyName="Microsoft.Build.Tasks.Core">
+    <ParameterGroup>
+      <InputString ParameterType="System.String" Required="true" />
+      <EscapedString ParameterType="System.String" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System.Xml" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+        if (!string.IsNullOrEmpty(InputString))
+        {
+            EscapedString = InputString
+                .Replace("&", "&amp;")
+                .Replace("<", "&lt;")
+                .Replace(">", "&gt;")
+                .Replace("\"", "&quot;")
+                .Replace("'", "&apos;");
+        }
+        else
+        {
+            EscapedString = "";
+        }
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
   <Target Name="ValidateCycloneDxConfiguration"
           BeforeTargets="Build"
           Condition="'$(GenerateCycloneDxSbom)' == 'true'">
@@ -136,23 +183,6 @@
       <!-- Build package URL (purl) -->
     </PropertyGroup>
 
-    <!-- Inline task to URL-encode component name and version -->
-    <UsingTask TaskName="UrlEncodeCycloneDxProps" TaskFactory="CodeTaskFactory" AssemblyName="Microsoft.Build.Tasks.Core">
-      <ParameterGroup>
-        ComponentName ParameterType="System.String" Required="true" />
-        Version ParameterType="System.String" Required="true" />
-        EncodedComponentName ParameterType="System.String" Output="true" />
-        EncodedVersion ParameterType="System.String" Output="true" />
-      </ParameterGroup>
-      <Task>
-        <Reference Include="System" />
-        <Code Type="Fragment" Language="cs">
-          EncodedComponentName = System.Uri.EscapeDataString(ComponentName ?? "");
-          EncodedVersion = System.Uri.EscapeDataString(Version ?? "");
-        </Code>
-      </Task>
-    </UsingTask>
-
     <UrlEncodeCycloneDxProps
       ComponentName="$(_CycloneDxComponentName)"
       Version="$(_CycloneDxVersion)">
@@ -163,48 +193,78 @@
     <PropertyGroup>
       <_CycloneDxPurl>pkg:nuget/$(_CycloneDxComponentNameEncoded)@$(_CycloneDxVersionEncoded)</_CycloneDxPurl>
     </PropertyGroup>
+
+    <!-- Escape all values for XML -->
+    <XmlEscapeCycloneDxProps InputString="$(_CycloneDxPurl)">
+      <Output TaskParameter="EscapedString" PropertyName="_CycloneDxPurlEscaped" />
+    </XmlEscapeCycloneDxProps>
+    
+    <XmlEscapeCycloneDxProps InputString="$(_CycloneDxComponentName)">
+      <Output TaskParameter="EscapedString" PropertyName="_CycloneDxComponentNameEscaped" />
+    </XmlEscapeCycloneDxProps>
+    
+    <XmlEscapeCycloneDxProps InputString="$(_CycloneDxVersion)">
+      <Output TaskParameter="EscapedString" PropertyName="_CycloneDxVersionEscaped" />
+    </XmlEscapeCycloneDxProps>
+    
+    <XmlEscapeCycloneDxProps InputString="$(_CycloneDxDescription)" Condition="'$(_CycloneDxDescription)' != ''">
+      <Output TaskParameter="EscapedString" PropertyName="_CycloneDxDescriptionEscaped" />
+    </XmlEscapeCycloneDxProps>
+    
+    <XmlEscapeCycloneDxProps InputString="$(_CycloneDxAuthors)" Condition="'$(_CycloneDxAuthors)' != ''">
+      <Output TaskParameter="EscapedString" PropertyName="_CycloneDxAuthorsEscaped" />
+    </XmlEscapeCycloneDxProps>
+    
+    <XmlEscapeCycloneDxProps InputString="$(_CycloneDxCopyright)" Condition="'$(_CycloneDxCopyright)' != ''">
+      <Output TaskParameter="EscapedString" PropertyName="_CycloneDxCopyrightEscaped" />
+    </XmlEscapeCycloneDxProps>
+    
+    <XmlEscapeCycloneDxProps InputString="$(_CycloneDxLicense)" Condition="'$(_CycloneDxLicense)' != ''">
+      <Output TaskParameter="EscapedString" PropertyName="_CycloneDxLicenseEscaped" />
+    </XmlEscapeCycloneDxProps>
+    
     <Message Importance="low" Text="[CycloneDX] Generating metadata from assembly information..." />
     <Message Importance="low" Text="[CycloneDX] Version: $(_CycloneDxVersion)" />
     <Message Importance="low" Text="[CycloneDX] Name: $(_CycloneDxComponentName)" />
     <Message Importance="low" Text="[CycloneDX] Authors: $(_CycloneDxAuthors)" Condition="'$(_CycloneDxAuthors)' != ''" />
 
-    <!-- Build metadata XML content -->
+    <!-- Build metadata XML content using escaped values without CDATA interleaving -->
     <PropertyGroup>
-      <_CycloneDxMetadataContent><![CDATA[<?xml version="1.0" encoding="utf-8"?>
-<bom xmlns="http://cyclonedx.org/schema/bom/1.6">
-  <metadata>
-    <component type="application" bom-ref="$([System.Security.SecurityElement::Escape('$(_CycloneDxPurl)'))]">
-      <name>$([System.Security.SecurityElement::Escape('$(_CycloneDxComponentName)'))]</name>
-      <version>$([System.Security.SecurityElement::Escape('$(_CycloneDxVersion)'))]</version>]]></_CycloneDxMetadataContent>
+      <_CycloneDxMetadataContent>
+        &lt;?xml version="1.0" encoding="utf-8"?&gt;
+        &lt;bom xmlns="http://cyclonedx.org/schema/bom/1.6"&gt;
+          &lt;metadata&gt;
+            &lt;component type="application" bom-ref="$(_CycloneDxPurlEscaped)"&gt;
+              &lt;name&gt;$(_CycloneDxComponentNameEscaped)&lt;/name&gt;
+              &lt;version&gt;$(_CycloneDxVersionEscaped)&lt;/version&gt;
+            </_CycloneDxMetadataContent>
 
       <!-- Add description if available -->
-      <_CycloneDxMetadataContent Condition="'$(_CycloneDxDescription)' != ''">$(_CycloneDxMetadataContent)<![CDATA[
-      <description>$([System.Security.SecurityElement::Escape('$(_CycloneDxDescription)'))]</description>]]></_CycloneDxMetadataContent>
+      <_CycloneDxMetadataContent Condition="'$(_CycloneDxDescription)' != ''">$(_CycloneDxMetadataContent) &lt;description&gt;$(_CycloneDxDescriptionEscaped)&lt;/description&gt;</_CycloneDxMetadataContent>
 
       <!-- Add authors/supplier if available -->
-      <_CycloneDxMetadataContent Condition="'$(_CycloneDxAuthors)' != ''">$(_CycloneDxMetadataContent)<![CDATA[
-      <supplier>
-        <name>$([System.Security.SecurityElement::Escape('$(_CycloneDxAuthors)'))]</name>
-      </supplier>]]></_CycloneDxMetadataContent>
+      <_CycloneDxMetadataContent Condition="'$(_CycloneDxAuthors)' != ''">$(_CycloneDxMetadataContent)
+        &lt;supplier&gt;
+          &lt;name&gt;$(_CycloneDxAuthorsEscaped)&lt;/name&gt;
+        &lt;/supplier&gt;</_CycloneDxMetadataContent>
 
       <!-- Add copyright if available -->
-      <_CycloneDxMetadataContent Condition="'$(_CycloneDxCopyright)' != ''">$(_CycloneDxMetadataContent)<![CDATA[
-      <copyright>$([System.Security.SecurityElement::Escape('$(_CycloneDxCopyright)'))]</copyright>]]></_CycloneDxMetadataContent>
+      <_CycloneDxMetadataContent Condition="'$(_CycloneDxCopyright)' != ''">$(_CycloneDxMetadataContent) &lt;copyright&gt;$(_CycloneDxCopyrightEscaped)&lt;/copyright&gt;</_CycloneDxMetadataContent>
 
       <!-- Add license if available -->
-      <_CycloneDxMetadataContent Condition="'$(_CycloneDxLicense)' != ''">$(_CycloneDxMetadataContent)<![CDATA[
-      <licenses>
-        <license>
-          <id>$([System.Security.SecurityElement::Escape('$(_CycloneDxLicense)'))]</id>
-        </license>
-      </licenses>]]></_CycloneDxMetadataContent>
+      <_CycloneDxMetadataContent Condition="'$(_CycloneDxLicense)' != ''">$(_CycloneDxMetadataContent)
+        &lt;licenses&gt;
+          &lt;license&gt;
+            &lt;id&gt;$(_CycloneDxLicenseEscaped)&lt;/id&gt;
+          &lt;/license&gt;
+        &lt;/licenses&gt;</_CycloneDxMetadataContent>
 
-      <!-- Add purl -->
-      <_CycloneDxMetadataContent>$(_CycloneDxMetadataContent)<![CDATA[
-      <purl>$([System.Security.SecurityElement::Escape('$(_CycloneDxPurl)'))]</purl>
-    </component>
-  </metadata>
-</bom>]]></_CycloneDxMetadataContent>
+      <!-- Add purl and close tags -->
+      <_CycloneDxMetadataContent>$(_CycloneDxMetadataContent)
+        &lt;purl&gt;$(_CycloneDxPurlEscaped)&lt;/purl&gt;
+      &lt;/component&gt;
+    &lt;/metadata&gt;
+  &lt;/bom&gt;</_CycloneDxMetadataContent>
     </PropertyGroup>
 
     <!-- Write metadata to temporary file -->
