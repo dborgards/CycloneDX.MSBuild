@@ -5,7 +5,7 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/CycloneDX/cyclonedx-msbuild.git"
+    "url": "https://github.com/dborgards/CycloneDX.MSBuild.git"
   },
   "scripts": {
     "semantic-release": "semantic-release"
