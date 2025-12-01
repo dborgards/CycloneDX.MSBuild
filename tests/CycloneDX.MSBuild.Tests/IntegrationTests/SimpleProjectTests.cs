@@ -42,17 +42,25 @@ public class SimpleProjectTests : IDisposable
     public void Build_SbomShouldContainValidStructure()
     {
         // Arrange
-        _builder.Build("Debug");
+        var buildResult = _builder.Build("Debug");
+        buildResult.Success.Should().BeTrue($"Build should succeed. Output: {buildResult.Output}");
+
         var sbomPath = Path.Combine(_projectDirectory, "bin", "Debug", "net8.0", "sbom.json");
+        File.Exists(sbomPath).Should().BeTrue($"SBOM file should exist at {sbomPath}");
 
         // Act
         using var sbom = SbomHelper.ReadJsonSbom(sbomPath);
 
-        // Assert
-        SbomHelper.IsValidBasicStructure(sbom).Should().BeTrue("SBOM should have valid basic structure");
-        SbomHelper.GetBomFormat(sbom).Should().Be("CycloneDX");
-        SbomHelper.GetSpecVersion(sbom).Should().NotBeNullOrEmpty();
-        SbomHelper.GetVersion(sbom).Should().BeGreaterThan(0);
+        // Assert with detailed diagnostics
+        var hasValidStructure = SbomHelper.IsValidBasicStructure(sbom);
+        var bomFormat = SbomHelper.GetBomFormat(sbom);
+        var specVersion = SbomHelper.GetSpecVersion(sbom);
+        var version = SbomHelper.GetVersion(sbom);
+
+        hasValidStructure.Should().BeTrue($"SBOM should have valid basic structure. BomFormat={bomFormat}, SpecVersion={specVersion}, Version={version}");
+        bomFormat.Should().Be("CycloneDX");
+        specVersion.Should().NotBeNullOrEmpty();
+        version.Should().BeGreaterThan(0);
     }
 
     [Fact]
@@ -150,14 +158,21 @@ public class SimpleProjectTests : IDisposable
     [Fact]
     public void Publish_ShouldCopySbomToPublishDirectory()
     {
+        // Arrange - Build first to ensure SBOM is generated
+        var buildResult = _builder.Build("Debug");
+        buildResult.Success.Should().BeTrue($"Build should succeed. Output: {buildResult.Output}");
+
+        var buildSbomPath = Path.Combine(_projectDirectory, "bin", "Debug", "net8.0", "sbom.json");
+        File.Exists(buildSbomPath).Should().BeTrue($"SBOM should exist after build at {buildSbomPath}");
+
         // Act
-        var result = _builder.Publish("Debug");
+        var publishResult = _builder.Publish("Debug");
 
         // Assert
-        result.Success.Should().BeTrue("publish should succeed");
+        publishResult.Success.Should().BeTrue($"Publish should succeed. Output: {publishResult.Output}");
 
-        var sbomPath = Path.Combine(_projectDirectory, "bin", "Debug", "net8.0", "publish", "sbom.json");
-        File.Exists(sbomPath).Should().BeTrue($"SBOM should be copied to publish directory at {sbomPath}");
+        var publishSbomPath = Path.Combine(_projectDirectory, "bin", "Debug", "net8.0", "publish", "sbom.json");
+        File.Exists(publishSbomPath).Should().BeTrue($"SBOM should be copied to publish directory at {publishSbomPath}. Publish output: {publishResult.Output}");
     }
 
     [Fact]

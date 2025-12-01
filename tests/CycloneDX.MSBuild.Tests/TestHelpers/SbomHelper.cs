@@ -155,7 +155,15 @@ public static class SbomHelper
     {
         if (sbom.RootElement.TryGetProperty("version", out var version))
         {
-            return version.GetInt32();
+            try
+            {
+                return version.GetInt32();
+            }
+            catch
+            {
+                // Version might not be an integer in some edge cases
+                return null;
+            }
         }
         return null;
     }

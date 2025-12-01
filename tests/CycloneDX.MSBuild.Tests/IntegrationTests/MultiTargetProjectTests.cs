@@ -51,15 +51,21 @@ public class MultiTargetProjectTests : IDisposable
     public void Build_SbomShouldBeValidCycloneDx()
     {
         // Arrange
-        _builder.Build("Debug");
+        var buildResult = _builder.Build("Debug");
+        buildResult.Success.Should().BeTrue($"Build should succeed. Output: {buildResult.Output}");
+
         var sbomPath = Path.Combine(_projectDirectory, "bin", "sbom", "sbom.json");
+        File.Exists(sbomPath).Should().BeTrue($"SBOM file should exist at {sbomPath}");
 
         // Act
         using var sbom = SbomHelper.ReadJsonSbom(sbomPath);
 
-        // Assert
-        SbomHelper.IsValidBasicStructure(sbom).Should().BeTrue("SBOM should have valid structure");
-        SbomHelper.GetBomFormat(sbom).Should().Be("CycloneDX");
+        // Assert with detailed diagnostics
+        var hasValidStructure = SbomHelper.IsValidBasicStructure(sbom);
+        var bomFormat = SbomHelper.GetBomFormat(sbom);
+
+        hasValidStructure.Should().BeTrue($"SBOM should have valid structure. BomFormat={bomFormat}");
+        bomFormat.Should().Be("CycloneDX");
     }
 
     [Fact]
@@ -101,11 +107,18 @@ public class MultiTargetProjectTests : IDisposable
     [Fact]
     public void Publish_ShouldCopySbomToPublishDirectory()
     {
+        // Arrange - Build first to ensure SBOM is generated
+        var buildResult = _builder.Build("Debug");
+        buildResult.Success.Should().BeTrue($"Build should succeed. Output: {buildResult.Output}");
+
+        var buildSbomPath = Path.Combine(_projectDirectory, "bin", "sbom", "sbom.json");
+        File.Exists(buildSbomPath).Should().BeTrue($"SBOM should exist after build at {buildSbomPath}");
+
         // Act
-        var result = _builder.Publish("Debug");
+        var publishResult = _builder.Publish("Debug");
 
         // Assert
-        result.Success.Should().BeTrue("publish should succeed");
+        publishResult.Success.Should().BeTrue($"Publish should succeed. Output: {publishResult.Output}");
 
         // For multi-target, publish should copy SBOM to each framework's publish directory
         // Check at least one publish directory
@@ -114,7 +127,7 @@ public class MultiTargetProjectTests : IDisposable
         // Note: The exact behavior might depend on how publish works with multi-target
         // At minimum, the SBOM should exist in the custom output location
         var customSbomPath = Path.Combine(_projectDirectory, "bin", "sbom", "sbom.json");
-        File.Exists(customSbomPath).Should().BeTrue("SBOM should exist in custom output directory");
+        File.Exists(customSbomPath).Should().BeTrue($"SBOM should exist in custom output directory. Publish output: {publishResult.Output}");
     }
 
     public void Dispose()
