@@ -176,7 +176,7 @@
 
     <PropertyGroup>
       <CycloneDxOutputDirectory Condition="'$(CycloneDxOutputDirectory)' == ''">$(OutputPath)</CycloneDxOutputDirectory>
-      <CycloneDxOutputDirectory>$(CycloneDxOutputDirectory.TrimEnd('\').TrimEnd('/'))</CycloneDxOutputDirectory>
+      <CycloneDxOutputDirectory>$(CycloneDxOutputDirectory.TrimEnd('\\').TrimEnd('/'))</CycloneDxOutputDirectory>
     </PropertyGroup>
 
     <PropertyGroup>
