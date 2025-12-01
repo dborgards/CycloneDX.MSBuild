@@ -165,8 +165,13 @@
 
   <Target Name="CopyCycloneDxSbomToPublishDirectory"
           AfterTargets="Publish"
-          Condition="'$(GenerateCycloneDxSbom)' == 'true' and '$(PublishDir)' != ''">
+          Condition="'$(PublishDir)' != ''">
+    <!-- Check if SBOM was enabled (either for this build or for outer build in multi-target scenario) -->
     <PropertyGroup>
+      <_CycloneDxShouldCopyToPublish Condition="'$(GenerateCycloneDxSbom)' == 'true' OR '$(_CycloneDxIsInnerBuild)' == 'true'">true</_CycloneDxShouldCopyToPublish>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(_CycloneDxShouldCopyToPublish)' == 'true'">
       <!-- Recalculate output directory and paths in case they weren't set -->
       <CycloneDxOutputDirectory Condition="'$(CycloneDxOutputDirectory)' == ''">$(OutputPath)</CycloneDxOutputDirectory>
       <CycloneDxOutputDirectory>$(CycloneDxOutputDirectory.TrimEnd('\').TrimEnd('/'))</CycloneDxOutputDirectory>
@@ -175,13 +180,15 @@
       <CycloneDxOutputPath>$([System.IO.Path]::Combine('$(CycloneDxOutputDirectory)', '$(_CycloneDxFullFilename)'))</CycloneDxOutputPath>
       <_CycloneDxPublishPath>$([System.IO.Path]::Combine('$(PublishDir)', '$(_CycloneDxFullFilename)'))</_CycloneDxPublishPath>
     </PropertyGroup>
-    <Message Importance="normal" Text="[CycloneDX] Copying SBOM from $(CycloneDxOutputPath) to publish directory..." />
+
+    <Message Condition="'$(_CycloneDxShouldCopyToPublish)' == 'true'" Importance="high" Text="[CycloneDX] Publish SBOM copy - OutputDir: $(CycloneDxOutputDirectory), OutputPath: $(CycloneDxOutputPath), PublishDir: $(PublishDir), Exists: $([System.IO.File]::Exists('$(CycloneDxOutputPath)'))" />
+    <Message Condition="'$(_CycloneDxShouldCopyToPublish)' == 'true'" Importance="normal" Text="[CycloneDX] Copying SBOM from $(CycloneDxOutputPath) to publish directory..." />
     <Copy SourceFiles="$(CycloneDxOutputPath)"
           DestinationFiles="$(_CycloneDxPublishPath)"
           SkipUnchangedFiles="true"
-          Condition="Exists('$(CycloneDxOutputPath)')" />
-    <Message Importance="high" Condition="Exists('$(CycloneDxOutputPath)')" Text="[CycloneDX] SBOM copied to publish directory: $(_CycloneDxPublishPath)" />
-    <Warning Condition="!Exists('$(CycloneDxOutputPath)')" Text="[CycloneDX] SBOM file not found at $(CycloneDxOutputPath). Ensure build was successful before publishing." />
+          Condition="'$(_CycloneDxShouldCopyToPublish)' == 'true' AND Exists('$(CycloneDxOutputPath)')" />
+    <Message Condition="'$(_CycloneDxShouldCopyToPublish)' == 'true' AND Exists('$(CycloneDxOutputPath)')" Importance="high" Text="[CycloneDX] SBOM copied to publish directory: $(_CycloneDxPublishPath)" />
+    <Warning Condition="'$(_CycloneDxShouldCopyToPublish)' == 'true' AND !Exists('$(CycloneDxOutputPath)')" Text="[CycloneDX] SBOM file not found at $(CycloneDxOutputPath). Ensure build was successful before publishing." />
   </Target>
 
   <!-- Optional: Validate generated SBOM against CycloneDX schema -->
