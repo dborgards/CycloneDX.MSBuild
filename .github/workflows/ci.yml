@@ -79,7 +79,8 @@ jobs:
         run: dotnet restore
 
       - name: Check formatting
-        run: dotnet format --verify-no-changes --no-restore || echo "Formatting check completed"
+        run: dotnet format --verify-no-changes --no-restore
+        continue-on-error: true
 
       - name: Run package validation
         run: dotnet pack src/CycloneDX.MSBuild/CycloneDX.MSBuild.csproj -c Release -p:EnablePackageValidation=true
@@ -101,7 +102,8 @@ jobs:
         run: dotnet restore
 
       - name: Check for vulnerable packages
-        run: dotnet list package --vulnerable --include-transitive || true
+        run: dotnet list package --vulnerable --include-transitive
 
       - name: Check for deprecated packages
-        run: dotnet list package --deprecated || true
+        run: dotnet list package --deprecated
+        continue-on-error: true
