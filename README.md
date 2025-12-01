@@ -250,6 +250,16 @@ tests/
 └── DisabledProject/        # Project with SBOM generation disabled
 ```
 
+## 🔄 Versioning
+
+This project uses **automated semantic versioning** with:
+- **MinVer**: Automatic version calculation from Git tags
+- **semantic-release**: Automated releases, changelogs, and NuGet publishing
+
+All commits must follow [Conventional Commits](https://www.conventionalcommits.org/) format.
+
+📖 For detailed information, see [VERSIONING.md](VERSIONING.md)
+
 ## 🔧 Development
 
 ### Project Structure
