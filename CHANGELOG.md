@@ -1,3 +1,15 @@
+## [1.2.0](https://github.com/dborgards/CycloneDX.MSBuild/compare/v1.1.0...v1.2.0) (2025-12-01)
+
+### ✨ Features
+
+* add automatic SBOM metadata generation from assembly properties ([e32ba42](https://github.com/dborgards/CycloneDX.MSBuild/commit/e32ba424e8b8c03d9d2711005aac4b4ce7a2327b))
+* **msbuild:** improve SBOM generation and XML handling ([5ca72e3](https://github.com/dborgards/CycloneDX.MSBuild/commit/5ca72e35316647ef3e43d7a0050c42faa70d0842))
+
+### ♻️ Code Refactoring
+
+* **build:** simplify CycloneDX MSBuild targets ([87cd7f0](https://github.com/dborgards/CycloneDX.MSBuild/commit/87cd7f01bacd7ab5d0f2bade3066a47957f26384))
+* **msbuild:** simplify CycloneDX target handling ([7b8ebc8](https://github.com/dborgards/CycloneDX.MSBuild/commit/7b8ebc87a30fff69c0e1606ed633fa7e4b3e0433))
+
 ## [1.1.0](https://github.com/dborgards/CycloneDX.MSBuild/compare/v1.0.2...v1.1.0) (2025-12-01)
 
 ### ✨ Features
