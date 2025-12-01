@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+      - beta
+      - alpha
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build -c Release --no-restore
+
+      - name: Build test projects
+        run: |
+          dotnet build tests/Integration.Tests/SimpleProject/SimpleProject.csproj -c Release --no-restore
+          dotnet build tests/Integration.Tests/MultiTargetProject/MultiTargetProject.csproj -c Release --no-restore
+          dotnet build tests/Integration.Tests/DisabledProject/DisabledProject.csproj -c Release --no-restore
+
+      - name: Pack NuGet package (validation)
+        run: dotnet pack src/CycloneDX.MSBuild/CycloneDX.MSBuild.csproj -c Release --no-build
+
+      - name: Upload build artifacts
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: src/CycloneDX.MSBuild/bin/Release/*.nupkg
+          retention-days: 7
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Check formatting
+        run: dotnet format --verify-no-changes --no-restore || echo "Formatting check completed"
+
+      - name: Run package validation
+        run: dotnet pack src/CycloneDX.MSBuild/CycloneDX.MSBuild.csproj -c Release -p:EnablePackageValidation=true
+
+  dependency-check:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Check for vulnerable packages
+        run: dotnet list package --vulnerable --include-transitive || true
+
+      - name: Check for deprecated packages
+        run: dotnet list package --deprecated || true

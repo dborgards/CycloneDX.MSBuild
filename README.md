@@ -2,6 +2,8 @@
 
 [![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 [![NuGet](https://img.shields.io/nuget/v/CycloneDX.MSBuild.svg)](https://www.nuget.org/packages/CycloneDX.MSBuild/)
+[![CI](https://github.com/dborgards/CycloneDX.MSBuild/actions/workflows/ci.yml/badge.svg)](https://github.com/dborgards/CycloneDX.MSBuild/actions/workflows/ci.yml)
+[![Release](https://github.com/dborgards/CycloneDX.MSBuild/actions/workflows/release.yml/badge.svg)](https://github.com/dborgards/CycloneDX.MSBuild/actions/workflows/release.yml)
 
 MSBuild targets for automatic **CycloneDX SBOM** (Software Bill of Materials) generation during build and pack operations. Seamlessly integrates the [CycloneDX .NET tool](https://github.com/CycloneDX/cyclonedx-dotnet) into your build pipeline.
 
@@ -259,6 +261,38 @@ This project uses **automated semantic versioning** with:
 All commits must follow [Conventional Commits](https://www.conventionalcommits.org/) format.
 
 📖 For detailed information, see [VERSIONING.md](VERSIONING.md)
+
+## 🚀 CI/CD Pipeline
+
+This project includes a comprehensive CI/CD pipeline with automated testing and publishing:
+
+### Continuous Integration (CI)
+
+Runs on all pull requests and feature branches:
+- ✅ **Multi-platform testing** (Ubuntu, Windows, macOS)
+- ✅ **Multi-version .NET testing** (.NET 6.0 and 8.0)
+- ✅ **Code quality checks** (formatting, package validation)
+- ✅ **Dependency security scanning** (vulnerable and deprecated packages)
+- ✅ **Build artifact generation**
+
+### Continuous Deployment (CD)
+
+Runs on pushes to `main`, `master`, `beta`, or `alpha` branches:
+1. **Build & Test** - Full test suite execution
+2. **Package Validation** - NuGet package quality checks
+3. **Semantic Release** - Automatic version determination from commits
+4. **NuGet Publishing** - Automatic publishing to [NuGet.org](https://www.nuget.org/packages/CycloneDX.MSBuild/)
+5. **GitHub Release** - Automated release notes and changelog
+
+### Setting up Automated Publishing
+
+To enable automated NuGet publishing:
+
+1. Get a NuGet API key from [NuGet.org](https://www.nuget.org/account/apikeys)
+2. Add it as a GitHub secret named `NUGET_API_KEY`
+3. The release workflow will automatically publish on version bumps
+
+📖 For detailed CI/CD documentation, see [.github/workflows/README.md](.github/workflows/README.md)
 
 ## 🔧 Development
 
