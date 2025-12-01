@@ -13,88 +13,56 @@
   <Target Name="ValidateCycloneDxConfiguration"
           BeforeTargets="Build"
           Condition="'$(GenerateCycloneDxSbom)' == 'true'">
-
     <PropertyGroup>
       <_CycloneDxValidationFailed>false</_CycloneDxValidationFailed>
     </PropertyGroup>
-
-    <!-- Validate output format -->
-    <Warning
-      Condition="'$(CycloneDxOutputFormat)' != 'json' AND '$(CycloneDxOutputFormat)' != 'xml'"
-      Text="[CycloneDX] Invalid output format '$(CycloneDxOutputFormat)'. Supported formats: json, xml. Defaulting to json." />
-
+    <Warning Condition="'$(CycloneDxOutputFormat)' != 'json' AND '$(CycloneDxOutputFormat)' != 'xml'"
+             Text="[CycloneDX] Invalid output format '$(CycloneDxOutputFormat)'. Supported formats: json, xml. Defaulting to json." />
     <PropertyGroup Condition="'$(CycloneDxOutputFormat)' != 'json' AND '$(CycloneDxOutputFormat)' != 'xml'">
       <CycloneDxOutputFormat>json</CycloneDxOutputFormat>
     </PropertyGroup>
-
-    <!-- Ensure output directory exists -->
     <MakeDir Directories="$(CycloneDxOutputDirectory)" Condition="!Exists('$(CycloneDxOutputDirectory)')" />
-
     <Message Importance="low" Text="[CycloneDX] Configuration validated successfully" />
-
   </Target>
 
   <Target Name="EnsureCycloneDxToolInstalled"
           BeforeTargets="GenerateCycloneDxSbom"
           Condition="'$(GenerateCycloneDxSbom)' == 'true'">
-
     <PropertyGroup>
       <_CycloneDxConfigDir>$(MSBuildProjectDirectory)/.config</_CycloneDxConfigDir>
       <_CycloneDxToolManifest>$(_CycloneDxConfigDir)/dotnet-tools.json</_CycloneDxToolManifest>
     </PropertyGroup>
-
-    <!-- Create .config directory if it doesn't exist -->
     <MakeDir Directories="$(_CycloneDxConfigDir)" Condition="!Exists('$(_CycloneDxConfigDir)')" />
-
-    <!-- Create tool manifest if it doesn't exist -->
-    <Exec
-      Command="dotnet new tool-manifest"
-      WorkingDirectory="$(MSBuildProjectDirectory)"
-      Condition="!Exists('$(_CycloneDxToolManifest)')"
-      ContinueOnError="$(CycloneDxContinueOnError)"
-      StandardOutputImportance="low"
-      StandardErrorImportance="normal">
+    <Exec Command="dotnet new tool-manifest"
+          WorkingDirectory="$(MSBuildProjectDirectory)"
+          Condition="!Exists('$(_CycloneDxToolManifest)')"
+          ContinueOnError="$(CycloneDxContinueOnError)"
+          StandardOutputImportance="low"
+          StandardErrorImportance="normal">
       <Output TaskParameter="ExitCode" PropertyName="_CycloneDxManifestExitCode" />
     </Exec>
-
-    <!-- Install CycloneDX tool -->
     <Message Importance="normal" Text="[CycloneDX] Installing CycloneDX tool version $(CycloneDxToolVersion)..." />
-
-    <Exec
-      Command="dotnet tool install --local CycloneDX --version $(CycloneDxToolVersion)"
-      WorkingDirectory="$(MSBuildProjectDirectory)"
-      ContinueOnError="true"
-      StandardOutputImportance="low"
-      StandardErrorImportance="low">
+    <Exec Command="dotnet tool install --local CycloneDX --version $(CycloneDxToolVersion)"
+          WorkingDirectory="$(MSBuildProjectDirectory)"
+          ContinueOnError="true"
+          StandardOutputImportance="low"
+          StandardErrorImportance="low">
       <Output TaskParameter="ExitCode" PropertyName="_CycloneDxInstallExitCode" />
     </Exec>
-
-    <!-- If installation failed (likely already installed), try to update/restore -->
-    <Exec
-      Command="dotnet tool restore"
-      WorkingDirectory="$(MSBuildProjectDirectory)"
-      Condition="'$(_CycloneDxInstallExitCode)' != '0'"
-      ContinueOnError="$(CycloneDxContinueOnError)"
-      StandardOutputImportance="low"
-      StandardErrorImportance="normal">
+    <Exec Command="dotnet tool restore"
+          WorkingDirectory="$(MSBuildProjectDirectory)"
+          Condition="'$(_CycloneDxInstallExitCode)' != '0'"
+          ContinueOnError="$(CycloneDxContinueOnError)"
+          StandardOutputImportance="low"
+          StandardErrorImportance="normal">
       <Output TaskParameter="ExitCode" PropertyName="_CycloneDxRestoreExitCode" />
     </Exec>
-
     <Message Importance="low" Text="[CycloneDX] Tool installation/restore completed" />
-
   </Target>
 
-  <!--
-    Metadata generation is disabled for .NET Core builds by the condition '$(MSBuildRuntimeType)' != 'Core'.
-    This is because certain MSBuild properties and tasks used for metadata extraction are not available or behave differently in .NET Core,
-    which can result in incomplete or incorrect metadata. If .NET Core support for metadata generation is required,
-    this condition and the associated logic should be reviewed and tested for compatibility.
-  -->
   <Target Name="GenerateCycloneDxMetadata"
           BeforeTargets="GenerateCycloneDxSbom"
-          Condition="'$(GenerateCycloneDxSbom)' == 'true' AND '$(CycloneDxGenerateMetadata)' == 'true' AND '$(CycloneDxImportMetadataPath)' == '' AND '$(MSBuildRuntimeType)' != 'Core'">
-
-    <!-- Collect raw values -->
+          Condition="'$(GenerateCycloneDxSbom)' == 'true' AND '$(CycloneDxGenerateMetadata)' == 'true' AND '$(CycloneDxImportMetadataPath)' == ''">
     <PropertyGroup>
       <_CycloneDxTempMetadataPath>$(IntermediateOutputPath)cyclonedx-metadata.xml</_CycloneDxTempMetadataPath>
       <_CycloneDxVersion Condition="'$(Version)' != ''">$(Version)</_CycloneDxVersion>
@@ -113,41 +81,9 @@
       <_CycloneDxLicense Condition="'$(PackageLicenseExpression)' != ''">$(PackageLicenseExpression)</_CycloneDxLicense>
     </PropertyGroup>
 
-    <!-- URL encode component name + version using inline task -->
-    <UsingTask
-      TaskName="UrlEncodeCycloneDxProps"
-      TaskFactory="CodeTaskFactory"
-      AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
-      <ParameterGroup>
-        <ComponentName ParameterType="System.String" Required="true" />
-        <Version ParameterType="System.String" Required="true" />
-        <ComponentNameEncoded ParameterType="System.String" Output="true" />
-        <VersionEncoded ParameterType="System.String" Output="true" />
-      </ParameterGroup>
-      <Task>
-        <Reference Include="System" />
-        <Code Type="Fragment" Language="cs">
-          <![CDATA[
-            ComponentNameEncoded = System.Uri.EscapeDataString(ComponentName ?? "");
-            VersionEncoded = System.Uri.EscapeDataString(Version ?? "");
-          ]]>
-        </Code>
-      </Task>
-    </UsingTask>
-
-    <UrlEncodeCycloneDxProps
-      ComponentName="$(_CycloneDxComponentName)"
-      Version="$(_CycloneDxVersion)">
-      <Output TaskParameter="ComponentNameEncoded" PropertyName="_CycloneDxComponentNameEncoded" />
-      <Output TaskParameter="VersionEncoded" PropertyName="_CycloneDxVersionEncoded" />
-    </UrlEncodeCycloneDxProps>
-
+    <!-- Build metadata XML content using raw values (no inline tasks) -->
     <PropertyGroup>
-      <_CycloneDxPurl>pkg:nuget/$(_CycloneDxComponentNameEncoded)@$(_CycloneDxVersionEncoded)</_CycloneDxPurl>
-    </PropertyGroup>
-
-    <!-- Build metadata XML content (no special char escaping) -->
-    <PropertyGroup>
+      <_CycloneDxPurl>pkg:nuget/$(_CycloneDxComponentName)@$(_CycloneDxVersion)</_CycloneDxPurl>
       <_CycloneDxMetadataContent>&lt;?xml version="1.0" encoding="utf-8"?&gt;&lt;bom xmlns="http://cyclonedx.org/schema/bom/1.6"&gt;&lt;metadata&gt;&lt;component type="application" bom-ref="$(_CycloneDxPurl)"&gt;&lt;name&gt;$(_CycloneDxComponentName)&lt;/name&gt;&lt;version&gt;$(_CycloneDxVersion)&lt;/version&gt;</_CycloneDxMetadataContent>
       <_CycloneDxMetadataContent Condition="'$(_CycloneDxDescription)' != ''">$(_CycloneDxMetadataContent)&lt;description&gt;$(_CycloneDxDescription)&lt;/description&gt;</_CycloneDxMetadataContent>
       <_CycloneDxMetadataContent Condition="'$(_CycloneDxAuthors)' != ''">$(_CycloneDxMetadataContent)&lt;supplier&gt;&lt;name&gt;$(_CycloneDxAuthors)&lt;/name&gt;&lt;/supplier&gt;</_CycloneDxMetadataContent>
@@ -171,14 +107,11 @@
   <Target Name="GenerateCycloneDxSbom"
           AfterTargets="Build"
           Condition="'$(GenerateCycloneDxSbom)' == 'true'">
-
     <Message Importance="high" Text="[CycloneDX] Generating SBOM for $(MSBuildProjectName)..." />
-
     <PropertyGroup>
       <CycloneDxOutputDirectory Condition="'$(CycloneDxOutputDirectory)' == ''">$(OutputPath)</CycloneDxOutputDirectory>
-      <CycloneDxOutputDirectory>$(CycloneDxOutputDirectory.TrimEnd('\\').TrimEnd('/'))</CycloneDxOutputDirectory>
+      <CycloneDxOutputDirectory>$(CycloneDxOutputDirectory.TrimEnd('\').TrimEnd('/'))</CycloneDxOutputDirectory>
     </PropertyGroup>
-
     <PropertyGroup>
       <_CycloneDxArgs></_CycloneDxArgs>
       <_CycloneDxArgs>$(_CycloneDxArgs) "$(MSBuildProjectFullPath)"</_CycloneDxArgs>
@@ -199,7 +132,6 @@
       <_CycloneDxArgs Condition="'$(CycloneDxGitHubToken)' != ''">$(_CycloneDxArgs) -gt "$(CycloneDxGitHubToken)"</_CycloneDxArgs>
       <_CycloneDxArgs Condition="'$(CycloneDxImportMetadataPath)' != ''">$(_CycloneDxArgs) -imp "$(CycloneDxImportMetadataPath)"</_CycloneDxArgs>
     </PropertyGroup>
-
     <Exec Command="dotnet cyclonedx $(_CycloneDxArgs)"
           WorkingDirectory="$(MSBuildProjectDirectory)"
           ContinueOnError="$(CycloneDxContinueOnError)"
@@ -207,58 +139,33 @@
           StandardErrorImportance="high">
       <Output TaskParameter="ExitCode" PropertyName="_CycloneDxGenerateExitCode" />
     </Exec>
-
     <Message Importance="high" Condition="'$(_CycloneDxGenerateExitCode)' == '0'" Text="[CycloneDX] SBOM generated successfully: $(CycloneDxOutputPath)" />
-
-    <Warning
-      Condition="'$(_CycloneDxGenerateExitCode)' != '0' AND '$(CycloneDxContinueOnError)' == 'true'"
-      Text="[CycloneDX] SBOM generation failed with exit code $(_CycloneDxGenerateExitCode). Build continuing due to CycloneDxContinueOnError=true" />
-
-    <Error
-      Condition="'$(_CycloneDxGenerateExitCode)' != '0' AND '$(CycloneDxContinueOnError)' == 'false'"
-      Text="[CycloneDX] SBOM generation failed with exit code $(_CycloneDxGenerateExitCode)" />
-
+    <Warning Condition="'$(_CycloneDxGenerateExitCode)' != '0' AND '$(CycloneDxContinueOnError)' == 'true'" Text="[CycloneDX] SBOM generation failed with exit code $(_CycloneDxGenerateExitCode). Build continuing due to CycloneDxContinueOnError=true" />
+    <Error Condition="'$(_CycloneDxGenerateExitCode)' != '0' AND '$(CycloneDxContinueOnError)' == 'false'" Text="[CycloneDX] SBOM generation failed with exit code $(_CycloneDxGenerateExitCode)" />
   </Target>
 
   <Target Name="IncludeCycloneDxSbomInPackage"
           BeforeTargets="GenerateNuspec"
           Condition="'$(GenerateCycloneDxSbom)' == 'true' AND '$(IsPackable)' != 'false'">
-
     <ItemGroup>
       <None Include="$(CycloneDxOutputPath)" Pack="true" PackagePath="sbom/" Condition="Exists('$(CycloneDxOutputPath)')" />
     </ItemGroup>
-
-    <Message
-      Importance="normal"
-      Condition="Exists('$(CycloneDxOutputPath)')"
-      Text="[CycloneDX] Including SBOM in NuGet package: $(CycloneDxOutputPath)" />
-
+    <Message Importance="normal" Condition="Exists('$(CycloneDxOutputPath)')" Text="[CycloneDX] Including SBOM in NuGet package: $(CycloneDxOutputPath)" />
   </Target>
 
   <Target Name="CopyCycloneDxSbomToPublishDirectory"
           AfterTargets="Publish"
           Condition="'$(GenerateCycloneDxSbom)' == 'true' and '$(PublishDir)' != ''">
-
     <PropertyGroup>
       <_CycloneDxPublishPath>$(PublishDir)$(_CycloneDxFullFilename)</_CycloneDxPublishPath>
     </PropertyGroup>
-
     <Message Importance="normal" Text="[CycloneDX] Copying SBOM to publish directory..." />
-
     <Copy SourceFiles="$(CycloneDxOutputPath)"
           DestinationFiles="$(_CycloneDxPublishPath)"
           SkipUnchangedFiles="true"
           Condition="Exists('$(CycloneDxOutputPath)')" />
-
-    <Message
-      Importance="high"
-      Condition="Exists('$(CycloneDxOutputPath)')"
-      Text="[CycloneDX] SBOM copied to publish directory: $(_CycloneDxPublishPath)" />
-
-    <Warning
-      Condition="!Exists('$(CycloneDxOutputPath)')"
-      Text="[CycloneDX] SBOM file not found at $(CycloneDxOutputPath). Ensure build was successful before publishing." />
-
+    <Message Importance="high" Condition="Exists('$(CycloneDxOutputPath)')" Text="[CycloneDX] SBOM copied to publish directory: $(_CycloneDxPublishPath)" />
+    <Warning Condition="!Exists('$(CycloneDxOutputPath)')" Text="[CycloneDX] SBOM file not found at $(CycloneDxOutputPath). Ensure build was successful before publishing." />
   </Target>
 
 </Project>
