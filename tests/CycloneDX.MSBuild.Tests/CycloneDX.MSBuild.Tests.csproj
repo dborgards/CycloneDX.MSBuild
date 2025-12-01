@@ -26,6 +26,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Reference the test projects to ensure they're built before copying -->
+    <ProjectReference Include="../Integration.Tests/SimpleProject/SimpleProject.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="../Integration.Tests/MultiTargetProject/MultiTargetProject.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="../Integration.Tests/DisabledProject/DisabledProject.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Reference the test projects as content to build them during tests -->
     <None Include="../Integration.Tests/**/*" LinkBase="TestProjects" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
