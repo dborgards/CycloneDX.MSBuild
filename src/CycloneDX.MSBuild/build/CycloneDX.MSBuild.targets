@@ -121,11 +121,15 @@
       <!-- Build full filename with extension based on format -->
       <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'json'">$(CycloneDxOutputFilename).json</_CycloneDxFullFilename>
       <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'xml'">$(CycloneDxOutputFilename).xml</_CycloneDxFullFilename>
+      <!-- Fallback to json if format is invalid -->
+      <_CycloneDxFullFilename Condition="'$(_CycloneDxFullFilename)' == ''">$(CycloneDxOutputFilename).json</_CycloneDxFullFilename>
       <_CycloneDxArgs>$(_CycloneDxArgs) -fn "$(_CycloneDxFullFilename)"</_CycloneDxArgs>
 
       <!-- Output format: json or xml (capitalize first letter for tool) -->
       <_CycloneDxOutputFormat Condition="'$(CycloneDxOutputFormat)' == 'json'">Json</_CycloneDxOutputFormat>
       <_CycloneDxOutputFormat Condition="'$(CycloneDxOutputFormat)' == 'xml'">Xml</_CycloneDxOutputFormat>
+      <!-- Fallback to Json if format is invalid -->
+      <_CycloneDxOutputFormat Condition="'$(_CycloneDxOutputFormat)' == ''">Json</_CycloneDxOutputFormat>
       <_CycloneDxArgs>$(_CycloneDxArgs) -F $(_CycloneDxOutputFormat)</_CycloneDxArgs>
 
       <!-- Optional arguments -->
