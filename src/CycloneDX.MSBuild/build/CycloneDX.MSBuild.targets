@@ -120,6 +120,8 @@
       <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'xml'">$(CycloneDxOutputFilename).xml</_CycloneDxFullFilename>
       <_CycloneDxFullFilename Condition="'$(_CycloneDxFullFilename)' == ''">$(CycloneDxOutputFilename).json</_CycloneDxFullFilename>
       <_CycloneDxArgs>$(_CycloneDxArgs) -fn "$(_CycloneDxFullFilename)"</_CycloneDxArgs>
+      <!-- Calculate the full output path with proper path separator -->
+      <CycloneDxOutputPath>$([System.IO.Path]::Combine('$(CycloneDxOutputDirectory)', '$(_CycloneDxFullFilename)'))</CycloneDxOutputPath>
       <_CycloneDxOutputFormat Condition="'$(CycloneDxOutputFormat)' == 'json'">Json</_CycloneDxOutputFormat>
       <_CycloneDxOutputFormat Condition="'$(CycloneDxOutputFormat)' == 'xml'">Xml</_CycloneDxOutputFormat>
       <_CycloneDxOutputFormat Condition="'$(_CycloneDxOutputFormat)' == ''">Json</_CycloneDxOutputFormat>
@@ -147,6 +149,14 @@
   <Target Name="IncludeCycloneDxSbomInPackage"
           BeforeTargets="GenerateNuspec"
           Condition="'$(GenerateCycloneDxSbom)' == 'true' AND '$(IsPackable)' != 'false'">
+    <PropertyGroup>
+      <!-- Recalculate output path in case it wasn't set -->
+      <CycloneDxOutputDirectory Condition="'$(CycloneDxOutputDirectory)' == ''">$(OutputPath)</CycloneDxOutputDirectory>
+      <CycloneDxOutputDirectory>$(CycloneDxOutputDirectory.TrimEnd('\').TrimEnd('/'))</CycloneDxOutputDirectory>
+      <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'json' OR '$(CycloneDxOutputFormat)' == ''">$(CycloneDxOutputFilename).json</_CycloneDxFullFilename>
+      <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'xml'">$(CycloneDxOutputFilename).xml</_CycloneDxFullFilename>
+      <CycloneDxOutputPath>$([System.IO.Path]::Combine('$(CycloneDxOutputDirectory)', '$(_CycloneDxFullFilename)'))</CycloneDxOutputPath>
+    </PropertyGroup>
     <ItemGroup>
       <None Include="$(CycloneDxOutputPath)" Pack="true" PackagePath="sbom/" Condition="Exists('$(CycloneDxOutputPath)')" />
     </ItemGroup>
@@ -157,12 +167,15 @@
           AfterTargets="Publish"
           Condition="'$(GenerateCycloneDxSbom)' == 'true' and '$(PublishDir)' != ''">
     <PropertyGroup>
-      <!-- Recalculate the full filename in case it wasn't set during build -->
+      <!-- Recalculate output directory and paths in case they weren't set -->
+      <CycloneDxOutputDirectory Condition="'$(CycloneDxOutputDirectory)' == ''">$(OutputPath)</CycloneDxOutputDirectory>
+      <CycloneDxOutputDirectory>$(CycloneDxOutputDirectory.TrimEnd('\').TrimEnd('/'))</CycloneDxOutputDirectory>
       <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'json' OR '$(CycloneDxOutputFormat)' == ''">$(CycloneDxOutputFilename).json</_CycloneDxFullFilename>
       <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'xml'">$(CycloneDxOutputFilename).xml</_CycloneDxFullFilename>
-      <_CycloneDxPublishPath>$(PublishDir)$(_CycloneDxFullFilename)</_CycloneDxPublishPath>
+      <CycloneDxOutputPath>$([System.IO.Path]::Combine('$(CycloneDxOutputDirectory)', '$(_CycloneDxFullFilename)'))</CycloneDxOutputPath>
+      <_CycloneDxPublishPath>$([System.IO.Path]::Combine('$(PublishDir)', '$(_CycloneDxFullFilename)'))</_CycloneDxPublishPath>
     </PropertyGroup>
-    <Message Importance="normal" Text="[CycloneDX] Copying SBOM to publish directory..." />
+    <Message Importance="normal" Text="[CycloneDX] Copying SBOM from $(CycloneDxOutputPath) to publish directory..." />
     <Copy SourceFiles="$(CycloneDxOutputPath)"
           DestinationFiles="$(_CycloneDxPublishPath)"
           SkipUnchangedFiles="true"

@@ -133,12 +133,10 @@
 
     <!--
       Internal: Full output path for SBOM file
-      Constructed from directory, filename, and format
+      Note: This is calculated in the targets file after CycloneDxOutputDirectory is properly set
+      This property is available for reference but should not be relied upon until after the
+      GenerateCycloneDxSbom target has run
     -->
-    <CycloneDxOutputPath Condition="'$(CycloneDxOutputFormat)' == 'json'">$(CycloneDxOutputDirectory)$(CycloneDxOutputFilename).json</CycloneDxOutputPath>
-    <CycloneDxOutputPath Condition="'$(CycloneDxOutputFormat)' == 'xml'">$(CycloneDxOutputDirectory)$(CycloneDxOutputFilename).xml</CycloneDxOutputPath>
-    <!-- Fallback: If output path is still unset, default to .json -->
-    <CycloneDxOutputPath Condition="'$(CycloneDxOutputPath)' == ''">$(CycloneDxOutputDirectory)$(CycloneDxOutputFilename).json</CycloneDxOutputPath>
 
     <!--
       Internal: Flag to track if tool manifest exists
