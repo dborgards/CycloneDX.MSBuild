@@ -1,3 +1,13 @@
+## [1.2.1](https://github.com/dborgards/CycloneDX.MSBuild/compare/v1.2.0...v1.2.1) (2025-12-03)
+
+### 🐛 Bug Fixes
+
+* ensure SBOM version field is present in generated SBOMs ([6046907](https://github.com/dborgards/CycloneDX.MSBuild/commit/60469071bd6fe1d5d74a4d1e2ee4547a4dd86019))
+
+### ♻️ Code Refactoring
+
+* optimize SBOM version field validation - parse JSON once ([1a07aab](https://github.com/dborgards/CycloneDX.MSBuild/commit/1a07aab19ca6738d59f9ea76b7ced43ed02ae4d0))
+
 ## [1.2.0](https://github.com/dborgards/CycloneDX.MSBuild/compare/v1.1.0...v1.2.0) (2025-12-01)
 
 ### ✨ Features
