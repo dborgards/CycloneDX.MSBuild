@@ -34,4 +34,16 @@
     <CycloneDxOutputDirectory>$(MSBuildProjectDirectory)/bin/sbom/</CycloneDxOutputDirectory>
   </PropertyGroup>
 
+  <!-- Provide legacy-compatible target expected by some tooling/tests -->
+  <Target Name="GetTargetPath">
+    <PropertyGroup>
+      <TargetPath>$(TargetDir)$(TargetFileName)</TargetPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <TargetPathWithTargetPlatform Include="$(TargetPath)">
+        <TargetPlatformIdentifier>$(TargetFramework)</TargetPlatformIdentifier>
+      </TargetPathWithTargetPlatform>
+    </ItemGroup>
+  </Target>
+
 </Project>
