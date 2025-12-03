@@ -31,22 +31,26 @@
     <ProjectReference Include="../../src/CycloneDX.MSBuild/CycloneDX.MSBuild.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <BuildInParallel>false</BuildInParallel>
-      <Properties>GeneratePackageOnBuild=false</Properties>
+      <Properties>GeneratePackageOnBuild=false;Configuration=$(Configuration)</Properties>
     </ProjectReference>
 
     <!-- Reference the test projects to ensure they're built before copying -->
     <!-- Disable parallel builds to prevent file locking on shared CycloneDX.MSBuild dependency -->
+    <!-- Pass Configuration to ensure all projects build with the same configuration -->
     <ProjectReference Include="../Integration.Tests/SimpleProject/SimpleProject.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <BuildInParallel>false</BuildInParallel>
+      <Properties>Configuration=$(Configuration)</Properties>
     </ProjectReference>
     <ProjectReference Include="../Integration.Tests/MultiTargetProject/MultiTargetProject.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <BuildInParallel>false</BuildInParallel>
+      <Properties>Configuration=$(Configuration)</Properties>
     </ProjectReference>
     <ProjectReference Include="../Integration.Tests/DisabledProject/DisabledProject.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <BuildInParallel>false</BuildInParallel>
+      <Properties>Configuration=$(Configuration)</Properties>
     </ProjectReference>
   </ItemGroup>
 
