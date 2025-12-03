@@ -152,44 +152,51 @@
     </ParameterGroup>
     <Task>
       <Using Namespace="System.IO" />
-      <Using Namespace="System.Text.Json" />
+      <Using Namespace="System.Text" />
+      <Using Namespace="System.Text.RegularExpressions" />
       <Code Type="Fragment" Language="cs">
         <![CDATA[
         try
         {
-            var jsonString = File.ReadAllText(SbomPath);
-            var options = new JsonDocumentOptions { AllowTrailingCommas = true };
-            using var document = JsonDocument.Parse(jsonString, options);
-            var root = document.RootElement;
+            var jsonContent = File.ReadAllText(SbomPath);
 
-            // Check if version field exists
-            if (!root.TryGetProperty("version", out _))
+            // Simple check if version field already exists using regex
+            // Look for "version" field at the root level (after opening brace, before other fields)
+            var versionPattern = @"^\s*\{\s*""version""\s*:";
+            if (Regex.IsMatch(jsonContent, versionPattern, RegexOptions.Multiline))
             {
-                // Create a new JSON object with version field
-                using var outputStream = new MemoryStream();
-                using (var writer = new Utf8JsonWriter(outputStream, new JsonWriterOptions { Indented = true }))
+                Log.LogMessage(MessageImportance.Low, "[CycloneDX] SBOM already has version field");
+                return true;
+            }
+
+            // Version field doesn't exist, add it
+            // Find the opening brace and insert version field right after it
+            var insertPattern = @"^(\s*\{)\s*$";
+            var replacement = "$1\n  \"version\": 1,";
+            var updatedContent = Regex.Replace(jsonContent, insertPattern, replacement, RegexOptions.Multiline);
+
+            // If the pattern didn't match (single-line opening), try a simpler approach
+            if (updatedContent == jsonContent)
+            {
+                // Handle compact JSON: { "bomFormat": ... }
+                if (jsonContent.TrimStart().StartsWith("{"))
                 {
-                    writer.WriteStartObject();
-
-                    // Write version field first
-                    writer.WriteNumber("version", 1);
-
-                    // Copy all existing properties from the already-parsed document
-                    foreach (var property in root.EnumerateObject())
-                    {
-                        property.WriteTo(writer);
-                    }
-
-                    writer.WriteEndObject();
+                    var firstBraceIndex = jsonContent.IndexOf('{');
+                    updatedContent = jsonContent.Substring(0, firstBraceIndex + 1) +
+                                   "\n  \"version\": 1," +
+                                   jsonContent.Substring(firstBraceIndex + 1);
                 }
+            }
 
-                // Write back to file
-                File.WriteAllBytes(SbomPath, outputStream.ToArray());
+            // Write back to file if content changed
+            if (updatedContent != jsonContent)
+            {
+                File.WriteAllText(SbomPath, updatedContent, Encoding.UTF8);
                 Log.LogMessage(MessageImportance.Low, "[CycloneDX] Added version field to SBOM");
             }
             else
             {
-                Log.LogMessage(MessageImportance.Low, "[CycloneDX] SBOM already has version field");
+                Log.LogWarning("[CycloneDX] Could not add version field - unexpected JSON format");
             }
         }
         catch (Exception ex)
