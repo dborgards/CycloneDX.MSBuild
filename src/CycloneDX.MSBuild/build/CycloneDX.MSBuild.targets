@@ -146,6 +146,68 @@
     <Error Condition="'$(_CycloneDxGenerateExitCode)' != '0' AND '$(CycloneDxContinueOnError)' == 'false'" Text="[CycloneDX] SBOM generation failed with exit code $(_CycloneDxGenerateExitCode)" />
   </Target>
 
+  <UsingTask TaskName="EnsureSbomVersionField" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <SbomPath ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Text.Json" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+        try
+        {
+            var jsonString = File.ReadAllText(SbomPath);
+            var options = new JsonDocumentOptions { AllowTrailingCommas = true };
+            using var document = JsonDocument.Parse(jsonString, options);
+            var root = document.RootElement;
+
+            // Check if version field exists
+            if (!root.TryGetProperty("version", out _))
+            {
+                // Create a new JSON object with version field
+                using var outputStream = new MemoryStream();
+                using (var writer = new Utf8JsonWriter(outputStream, new JsonWriterOptions { Indented = true }))
+                {
+                    writer.WriteStartObject();
+
+                    // Write version field first
+                    writer.WriteNumber("version", 1);
+
+                    // Copy all existing properties from the already-parsed document
+                    foreach (var property in root.EnumerateObject())
+                    {
+                        property.WriteTo(writer);
+                    }
+
+                    writer.WriteEndObject();
+                }
+
+                // Write back to file
+                File.WriteAllBytes(SbomPath, outputStream.ToArray());
+                Log.LogMessage(MessageImportance.Low, "[CycloneDX] Added version field to SBOM");
+            }
+            else
+            {
+                Log.LogMessage(MessageImportance.Low, "[CycloneDX] SBOM already has version field");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.LogWarning($"[CycloneDX] Failed to ensure version field: {ex.Message}");
+        }
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="EnsureCycloneDxSbomVersion"
+          AfterTargets="GenerateCycloneDxSbom"
+          Condition="'$(GenerateCycloneDxSbom)' == 'true' AND '$(_CycloneDxGenerateExitCode)' == '0' AND Exists('$(CycloneDxOutputPath)') AND '$(CycloneDxOutputFormat)' == 'json'">
+    <Message Importance="low" Text="[CycloneDX] Ensuring SBOM has version field at $(CycloneDxOutputPath)..." />
+    <EnsureSbomVersionField SbomPath="$(CycloneDxOutputPath)" />
+  </Target>
+
   <Target Name="IncludeCycloneDxSbomInPackage"
           BeforeTargets="GenerateNuspec"
           Condition="'$(GenerateCycloneDxSbom)' == 'true' AND '$(IsPackable)' != 'false'">
