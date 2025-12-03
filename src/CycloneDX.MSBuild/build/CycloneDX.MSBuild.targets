@@ -160,16 +160,16 @@
         {
             var jsonContent = File.ReadAllText(SbomPath);
 
-            // Simple check if version field already exists using regex
-            // Look for "version" field at the root level (after opening brace, before other fields)
-            var versionPattern = @"^\s*\{\s*""version""\s*:";
-            if (Regex.IsMatch(jsonContent, versionPattern, RegexOptions.Multiline))
+            // Check if version field exists anywhere in the JSON (not just at the beginning)
+            // This handles cases where version appears after other fields like bomFormat or specVersion
+            var versionPattern = @"""version""\s*:\s*\d+";
+            if (Regex.IsMatch(jsonContent, versionPattern))
             {
                 Log.LogMessage(MessageImportance.Low, "[CycloneDX] SBOM already has version field");
             }
             else
             {
-                // Version field doesn't exist, add it
+                // Version field doesn't exist, add it after the opening brace
                 // Find the opening brace and insert version field right after it
                 var insertPattern = @"^(\s*\{)\s*$";
                 var replacement = "$1\n  \"version\": 1,";
