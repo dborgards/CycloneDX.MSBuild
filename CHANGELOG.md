@@ -1,3 +1,39 @@
+## [1.3.0](https://github.com/dborgards/CycloneDX.MSBuild/compare/v1.2.1...v1.3.0) (2025-12-03)
+
+### ✨ Features
+
+* implement comprehensive project improvements ([f77d85a](https://github.com/dborgards/CycloneDX.MSBuild/commit/f77d85abead52af2c2e8bc680b69f93c0819bc19))
+
+### 🐛 Bug Fixes
+
+* add detailed diagnostics to failing tests ([bbad9d3](https://github.com/dborgards/CycloneDX.MSBuild/commit/bbad9d30417a9d822927a6e1a1408ed993b1c5e4))
+* add detailed SBOM structure validation diagnostics ([1cd0d92](https://github.com/dborgards/CycloneDX.MSBuild/commit/1cd0d92e4331bf742e72b7fd0b4bd170b2c79dc0))
+* add GetTargetPath target to MultiTargetProject for tooling compatibility ([a5ce1e9](https://github.com/dborgards/CycloneDX.MSBuild/commit/a5ce1e939a1e4c4bfa3ed0db4e2a290636060f8a))
+* add Integration.Tests projects as build dependencies ([9d6276f](https://github.com/dborgards/CycloneDX.MSBuild/commit/9d6276f5e52f4a4b355e0ada390b43190f6a67f1))
+* add new test projects to solution file ([39f24f5](https://github.com/dborgards/CycloneDX.MSBuild/commit/39f24f57428d0bfaa2137867259c6d69bd8d41bb))
+* add project dependencies and prevent parallel builds for benchmarks and integration tests ([86e07f3](https://github.com/dborgards/CycloneDX.MSBuild/commit/86e07f330699e9548f90eba77584861d164a94ec))
+* code formatting - add braces to single-line if statements ([cacc977](https://github.com/dborgards/CycloneDX.MSBuild/commit/cacc977374ad109f27cd9bec8ea1db7c9ed0da91))
+* disable package generation in test project references ([78e2723](https://github.com/dborgards/CycloneDX.MSBuild/commit/78e27234532d80b496a3f4c502c22750a4354184))
+* disable parallel builds at solution level with -m:1 ([7be6b47](https://github.com/dborgards/CycloneDX.MSBuild/commit/7be6b4744e7d5125477030ff9aec051d7cc69336)), closes [#1](https://github.com/dborgards/CycloneDX.MSBuild/issues/1) [#2](https://github.com/dborgards/CycloneDX.MSBuild/issues/2)
+* disable parallel builds for all Integration.Tests projects ([c367c05](https://github.com/dborgards/CycloneDX.MSBuild/commit/c367c0519f3c077d4504317e83db897f1df0521e))
+* enable SBOM copy to publish directory for multi-target inner builds ([4a26668](https://github.com/dborgards/CycloneDX.MSBuild/commit/4a2666844ef1687078ba892fad13ccad99055b68))
+* enhance test diagnostics to identify missing SBOM fields ([7ebf344](https://github.com/dborgards/CycloneDX.MSBuild/commit/7ebf344e1fdde97a364e02d179626518b88042fc))
+* improve test reliability and publish SBOM functionality ([8c27290](https://github.com/dborgards/CycloneDX.MSBuild/commit/8c27290d4a444158df0ef8edb8eeec418a178847))
+* improve version field detection regex to handle any field order ([6a9f7af](https://github.com/dborgards/CycloneDX.MSBuild/commit/6a9f7af23f45a2eb4a73d34cf2434991237eff68))
+* isolate project outputs and prevent file locking during builds ([0cba86c](https://github.com/dborgards/CycloneDX.MSBuild/commit/0cba86c08b4af03d4ff0c399fcf11ff80c4088e6))
+* pass Configuration property to all ProjectReferences ([ed9b2bd](https://github.com/dborgards/CycloneDX.MSBuild/commit/ed9b2bd978d6f439ce4fb19418f7dd61d0f5bd2b))
+* prevent parallel builds of MultiTargetProject inner frameworks ([03598ed](https://github.com/dborgards/CycloneDX.MSBuild/commit/03598ed3b39dc82488f34f0571d43a72a0c8e387))
+* prevent parallel builds of shared CycloneDX.MSBuild dependency ([74cadd1](https://github.com/dborgards/CycloneDX.MSBuild/commit/74cadd1b09b713acbcbb413a74c12f0ef357edaf))
+* properly calculate CycloneDxOutputPath in targets instead of props ([e3f723b](https://github.com/dborgards/CycloneDX.MSBuild/commit/e3f723b4c43e1f7197eb77a1c62f4b1417f2ac02))
+* remove Integration.Tests projects from solution to prevent parallel builds ([c83a316](https://github.com/dborgards/CycloneDX.MSBuild/commit/c83a3164e5abe526169c28753dab9e630f9136c6))
+* remove invalid dotnet_diagnostic properties from MSBuild file ([d66e5e2](https://github.com/dborgards/CycloneDX.MSBuild/commit/d66e5e2265bb4301583eef4fa23ebece2caa05b9))
+* remove invalid return statement from MSBuild inline task ([2cc6d4d](https://github.com/dborgards/CycloneDX.MSBuild/commit/2cc6d4dcc31dbb2a38a749873888955ffd36ad07))
+* rename XUnit collection classes to avoid CA1711 warning ([c2d5d48](https://github.com/dborgards/CycloneDX.MSBuild/commit/c2d5d485ca58e6f8950c2938f0d5e07f264eb5d0))
+* replace System.Text.Json with regex-based approach for MSBuild task compatibility ([04e50b0](https://github.com/dborgards/CycloneDX.MSBuild/commit/04e50b0319c3c85b51c0f31c404f1e79f319549a))
+* serialize integration tests to prevent file locking ([0a392a9](https://github.com/dborgards/CycloneDX.MSBuild/commit/0a392a93510e38428318e4dd18e4e64970bed1a8))
+* specify target framework for multi-target project publish test ([9e1d02f](https://github.com/dborgards/CycloneDX.MSBuild/commit/9e1d02fe6e3554a104d6cce4849bee85aa0cb437))
+* suppress code analysis warnings for test projects ([92dd8b0](https://github.com/dborgards/CycloneDX.MSBuild/commit/92dd8b0d4368b1b137730d0d90ca1a4dbd82aef9))
+
 ## [1.2.1](https://github.com/dborgards/CycloneDX.MSBuild/compare/v1.2.0...v1.2.1) (2025-12-03)
 
 ### 🐛 Bug Fixes
