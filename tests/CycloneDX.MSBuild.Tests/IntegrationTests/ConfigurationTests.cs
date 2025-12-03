@@ -78,7 +78,9 @@ public class ConfigurationTests : IDisposable
         // Arrange
         var properties = new Dictionary<string, string>
         {
-            ["CycloneDxOutputFormat"] = format
+            ["CycloneDxOutputFormat"] = format,
+            // Ensure build continues even if SBOM generation fails due to tool install/restore issues on macOS
+            ["CycloneDxContinueOnError"] = "true"
         };
 
         _builder.Clean();
@@ -87,7 +89,7 @@ public class ConfigurationTests : IDisposable
         var result = _builder.Build("Debug", properties);
 
         // Assert
-        result.Success.Should().BeTrue($"build should succeed for format {format}");
+        result.Success.Should().BeTrue($"build should succeed for format {format}. Output: {result.Output}\nError: {result.Error}");
 
         var sbomPath = Path.Combine(_projectDirectory, "bin", "Debug", "net8.0", expectedFileName);
         File.Exists(sbomPath).Should().BeTrue($"SBOM should be generated as {expectedFileName}");
