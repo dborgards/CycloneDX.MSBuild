@@ -21,6 +21,7 @@
     <!-- Reference the local CycloneDX.MSBuild package -->
     <ProjectReference Include="..\..\..\src\CycloneDX.MSBuild\CycloneDX.MSBuild.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Properties>GeneratePackageOnBuild=false</Properties>
     </ProjectReference>
   </ItemGroup>
 
@@ -32,5 +33,17 @@
   <PropertyGroup>
     <CycloneDxOutputDirectory>$(MSBuildProjectDirectory)/bin/sbom/</CycloneDxOutputDirectory>
   </PropertyGroup>
+
+  <!-- Provide legacy-compatible target expected by some tooling/tests -->
+  <Target Name="GetTargetPath">
+    <PropertyGroup>
+      <TargetPath>$(TargetDir)$(TargetFileName)</TargetPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <TargetPathWithTargetPlatform Include="$(TargetPath)">
+        <TargetPlatformIdentifier>$(TargetFramework)</TargetPlatformIdentifier>
+      </TargetPathWithTargetPlatform>
+    </ItemGroup>
+  </Target>
 
 </Project>

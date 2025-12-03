@@ -432,6 +432,300 @@ dotnet build tests/Integration.Tests/SimpleProject/SimpleProject.csproj
 | **Multi-Targeting** | ✅ | ✅ |
 | **Development Dependency** | ✅ | ✅ |
 
+## 🔍 Troubleshooting
+
+### Common Issues and Solutions
+
+#### SBOM Not Generated
+
+**Problem**: SBOM file is not created after build.
+
+**Solutions**:
+1. **Check if generation is enabled**:
+   ```bash
+   dotnet build -p:GenerateCycloneDxSbom=true -v:detailed
+   ```
+   Look for "GenerateCycloneDxSbom" messages in the output.
+
+2. **Verify the package is installed**:
+   ```bash
+   dotnet list package | grep CycloneDX.MSBuild
+   ```
+
+3. **Check for multi-target projects**: For projects with multiple target frameworks, the SBOM is only generated once at the outer build level. Check the project root or custom output directory.
+
+4. **Look in the correct location**: Default is `bin/[Configuration]/[TargetFramework]/sbom.json`. Check your `CycloneDxOutputDirectory` setting if customized.
+
+5. **Check build verbosity**: Run with detailed verbosity to see what's happening:
+   ```bash
+   dotnet build -v:detailed 2>&1 | grep -i cyclonedx
+   ```
+
+#### Tool Installation Failures
+
+**Problem**: CycloneDX tool fails to install or is not found.
+
+**Solutions**:
+1. **Manually install the tool**:
+   ```bash
+   dotnet tool install --local CycloneDX --version 5.5.0
+   ```
+
+2. **Clear tool cache and retry**:
+   ```bash
+   dotnet tool uninstall --local CycloneDX
+   dotnet build
+   ```
+
+3. **Check network connectivity**: Tool installation requires internet access to download from NuGet.org.
+
+4. **Verify .NET SDK version**: Ensure you have .NET SDK 6.0 or later installed:
+   ```bash
+   dotnet --version
+   ```
+
+5. **Check for proxy/firewall issues**: If behind a corporate proxy, configure NuGet:
+   ```bash
+   dotnet nuget update source nuget.org --http-proxy http://proxy.company.com:8080
+   ```
+
+#### GitHub License Resolution Issues
+
+**Problem**: GitHub API rate limiting or authentication errors.
+
+**Solutions**:
+1. **Rate limiting (60 requests/hour without auth)**:
+   - Use GitHub token for higher limits (5000 requests/hour)
+   - Set `CycloneDxGitHubUsername` and `CycloneDxGitHubToken` properties
+
+2. **Generate a GitHub token**:
+   - Go to GitHub Settings → Developer settings → Personal access tokens
+   - Create token with `public_repo` scope (read-only)
+   - Store securely (use environment variables, not source control)
+
+3. **Use environment variables in CI/CD**:
+   ```bash
+   dotnet build -p:CycloneDxGitHubToken=$GITHUB_TOKEN
+   ```
+
+4. **Disable if not needed**:
+   ```xml
+   <CycloneDxEnableGitHubLicenses>false</CycloneDxEnableGitHubLicenses>
+   ```
+
+#### Build Performance Issues
+
+**Problem**: Build time significantly increased after adding CycloneDX.MSBuild.
+
+**Solutions**:
+1. **Disable for Debug builds** (only generate for Release):
+   ```xml
+   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+     <GenerateCycloneDxSbom>false</GenerateCycloneDxSbom>
+   </PropertyGroup>
+   ```
+
+2. **Use custom output directory** to avoid file locking issues:
+   ```xml
+   <CycloneDxOutputDirectory>$(MSBuildProjectDirectory)/sbom/</CycloneDxOutputDirectory>
+   ```
+
+3. **Exclude test projects** from SBOM generation:
+   ```xml
+   <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
+     <GenerateCycloneDxSbom>false</GenerateCycloneDxSbom>
+   </PropertyGroup>
+   ```
+
+4. **Pin tool version** to avoid repeated downloads:
+   ```xml
+   <CycloneDxToolVersion>5.5.0</CycloneDxToolVersion>
+   ```
+
+#### Multi-Target Framework Issues
+
+**Problem**: Multiple SBOMs generated or wrong output location for multi-target projects.
+
+**Solution**: This is expected behavior. CycloneDX.MSBuild automatically detects multi-target projects and generates a single SBOM at the outer build level. If you're seeing multiple SBOMs, check:
+
+1. **Verify buildMultiTargeting files are imported**: The package should automatically handle this.
+
+2. **Check output location**: SBOM should be in the project directory or custom output directory, not in individual target framework folders.
+
+3. **Clean and rebuild**:
+   ```bash
+   dotnet clean
+   dotnet build
+   ```
+
+#### SBOM Contains Wrong Information
+
+**Problem**: SBOM has incorrect dependencies, versions, or metadata.
+
+**Solutions**:
+1. **Ensure dependencies are restored**:
+   ```bash
+   dotnet restore
+   dotnet build
+   ```
+
+2. **Check for package version conflicts**: Look at the build output for version resolution messages.
+
+3. **Use metadata template** to override project information:
+   ```xml
+   <CycloneDxImportMetadataPath>sbom-metadata.xml</CycloneDxImportMetadataPath>
+   ```
+
+4. **Verify tool version**: Ensure you're using a recent version of the CycloneDX tool:
+   ```xml
+   <CycloneDxToolVersion>5.5.0</CycloneDxToolVersion>
+   ```
+
+5. **Clean package cache and rebuild**:
+   ```bash
+   dotnet nuget locals all --clear
+   dotnet restore
+   dotnet build
+   ```
+
+#### CI/CD Pipeline Issues
+
+**Problem**: SBOM generation works locally but fails in CI/CD.
+
+**Solutions**:
+1. **Ensure .NET SDK is available**: CI environment must have .NET SDK 6.0+ installed.
+
+2. **Check for file permissions**: CI systems may have restricted file access. Use:
+   ```bash
+   dotnet build -p:CycloneDxContinueOnError=true
+   ```
+
+3. **Network access required**: Tool installation needs internet access to NuGet.org.
+
+4. **Use explicit restore**:
+   ```bash
+   dotnet restore
+   dotnet tool restore
+   dotnet build
+   ```
+
+5. **Cache the tool** in CI to improve performance:
+   ```yaml
+   # GitHub Actions example
+   - uses: actions/cache@v3
+     with:
+       path: ~/.nuget/packages
+       key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+   ```
+
+#### XML/JSON Format Issues
+
+**Problem**: Generated SBOM has parsing errors or invalid format.
+
+**Solutions**:
+1. **Validate the SBOM**: Use CycloneDX validation tools:
+   ```bash
+   # Install validator
+   npm install -g @cyclonedx/cyclonedx-cli
+
+   # Validate SBOM
+   cyclonedx validate --input-file sbom.json
+   ```
+
+2. **Check tool version**: Older versions may have bugs. Update to latest:
+   ```xml
+   <CycloneDxToolVersion>5.5.0</CycloneDxToolVersion>
+   ```
+
+3. **Try different format**: Switch between JSON and XML to isolate issues:
+   ```xml
+   <CycloneDxOutputFormat>xml</CycloneDxOutputFormat>
+   ```
+
+4. **Check for special characters**: Ensure project/package names don't have invalid XML/JSON characters.
+
+### Debugging Tips
+
+#### Enable Detailed Logging
+
+```bash
+dotnet build -v:detailed > build.log 2>&1
+grep -i cyclonedx build.log
+```
+
+#### Check Tool Installation
+
+```bash
+dotnet tool list --local
+```
+
+Should show:
+```
+Package Id         Version      Commands
+--------------------------------------------------------
+CycloneDX          5.5.0        dotnet-CycloneDX
+```
+
+#### Verify MSBuild Targets Are Loaded
+
+```bash
+dotnet build -v:diagnostic 2>&1 | grep "CycloneDX.MSBuild.targets"
+```
+
+Should show the targets file being imported.
+
+#### Test with Minimal Project
+
+Create a simple test project:
+```bash
+dotnet new console -n TestSbom
+cd TestSbom
+dotnet add package CycloneDX.MSBuild
+dotnet build
+ls bin/Debug/net8.0/sbom.json
+```
+
+### FAQ
+
+**Q: Does SBOM generation require internet access?**
+A: Yes, the first build requires internet to download the CycloneDX tool from NuGet.org. Subsequent builds use the cached tool. GitHub license resolution (if enabled) also requires internet access.
+
+**Q: Can I use this with .NET Framework projects?**
+A: The package targets netstandard2.0, so it works with .NET Framework 4.6.1+ and all versions of .NET Core/.NET 5+. However, you need .NET SDK 6.0+ installed to run the CycloneDX tool.
+
+**Q: Does this work with mono or alternative .NET implementations?**
+A: The package should work with any MSBuild-compatible build system that supports .NET tools.
+
+**Q: How do I exclude the SBOM from version control?**
+A: Add to `.gitignore`:
+```gitignore
+# CycloneDX SBOM files
+**/bin/**/sbom.json
+**/bin/**/sbom.xml
+sbom/
+```
+
+**Q: Can I validate the SBOM automatically during build?**
+A: Not built-in yet, but you can add a custom MSBuild target that runs validation after SBOM generation. This is a planned feature.
+
+**Q: Does the SBOM include transitive dependencies?**
+A: Yes, the CycloneDX tool includes all transitive dependencies by default.
+
+**Q: How do I report security vulnerabilities?**
+A: See [SECURITY.md](SECURITY.md) for our security policy and reporting process.
+
+**Q: What's the performance impact?**
+A: SBOM generation typically adds 2-5 seconds to build time, depending on project size and number of dependencies. Consider disabling for Debug builds if needed.
+
+### Getting Help
+
+If you're still experiencing issues:
+
+1. **Check existing issues**: [GitHub Issues](https://github.com/dborgards/CycloneDX.MSBuild/issues)
+2. **Review CycloneDX tool docs**: [cyclonedx-dotnet](https://github.com/CycloneDX/cyclonedx-dotnet)
+3. **Ask in discussions**: [GitHub Discussions](https://github.com/dborgards/CycloneDX.MSBuild/discussions)
+4. **File a bug report**: Include build logs, project configuration, and environment details
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit issues, feature requests, or pull requests.

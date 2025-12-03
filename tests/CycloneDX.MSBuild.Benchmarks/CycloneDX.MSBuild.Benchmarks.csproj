@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <!-- Don't generate SBOM for benchmark project -->
+    <GenerateCycloneDxSbom>false</GenerateCycloneDxSbom>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Reference CycloneDX.MSBuild first to ensure it's built before this project -->
+    <!-- This prevents parallel builds of the shared dependency that cause file locking -->
+    <ProjectReference Include="../../src/CycloneDX.MSBuild/CycloneDX.MSBuild.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <BuildInParallel>false</BuildInParallel>
+      <Properties>GeneratePackageOnBuild=false</Properties>
+    </ProjectReference>
+  </ItemGroup>
+
+</Project>

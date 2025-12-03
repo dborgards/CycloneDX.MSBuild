@@ -120,6 +120,8 @@
       <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'xml'">$(CycloneDxOutputFilename).xml</_CycloneDxFullFilename>
       <_CycloneDxFullFilename Condition="'$(_CycloneDxFullFilename)' == ''">$(CycloneDxOutputFilename).json</_CycloneDxFullFilename>
       <_CycloneDxArgs>$(_CycloneDxArgs) -fn "$(_CycloneDxFullFilename)"</_CycloneDxArgs>
+      <!-- Calculate the full output path with proper path separator -->
+      <CycloneDxOutputPath>$([System.IO.Path]::Combine('$(CycloneDxOutputDirectory)', '$(_CycloneDxFullFilename)'))</CycloneDxOutputPath>
       <_CycloneDxOutputFormat Condition="'$(CycloneDxOutputFormat)' == 'json'">Json</_CycloneDxOutputFormat>
       <_CycloneDxOutputFormat Condition="'$(CycloneDxOutputFormat)' == 'xml'">Xml</_CycloneDxOutputFormat>
       <_CycloneDxOutputFormat Condition="'$(_CycloneDxOutputFormat)' == ''">Json</_CycloneDxOutputFormat>
@@ -150,44 +152,52 @@
     </ParameterGroup>
     <Task>
       <Using Namespace="System.IO" />
-      <Using Namespace="System.Text.Json" />
+      <Using Namespace="System.Text" />
+      <Using Namespace="System.Text.RegularExpressions" />
       <Code Type="Fragment" Language="cs">
         <![CDATA[
         try
         {
-            var jsonString = File.ReadAllText(SbomPath);
-            var options = new JsonDocumentOptions { AllowTrailingCommas = true };
-            using var document = JsonDocument.Parse(jsonString, options);
-            var root = document.RootElement;
+            var jsonContent = File.ReadAllText(SbomPath);
 
-            // Check if version field exists
-            if (!root.TryGetProperty("version", out _))
+            // Check if version field exists anywhere in the JSON (not just at the beginning)
+            // This handles cases where version appears after other fields like bomFormat or specVersion
+            var versionPattern = @"""version""\s*:\s*\d+";
+            if (Regex.IsMatch(jsonContent, versionPattern))
             {
-                // Create a new JSON object with version field
-                using var outputStream = new MemoryStream();
-                using (var writer = new Utf8JsonWriter(outputStream, new JsonWriterOptions { Indented = true }))
-                {
-                    writer.WriteStartObject();
-
-                    // Write version field first
-                    writer.WriteNumber("version", 1);
-
-                    // Copy all existing properties from the already-parsed document
-                    foreach (var property in root.EnumerateObject())
-                    {
-                        property.WriteTo(writer);
-                    }
-
-                    writer.WriteEndObject();
-                }
-
-                // Write back to file
-                File.WriteAllBytes(SbomPath, outputStream.ToArray());
-                Log.LogMessage(MessageImportance.Low, "[CycloneDX] Added version field to SBOM");
+                Log.LogMessage(MessageImportance.Low, "[CycloneDX] SBOM already has version field");
             }
             else
             {
-                Log.LogMessage(MessageImportance.Low, "[CycloneDX] SBOM already has version field");
+                // Version field doesn't exist, add it after the opening brace
+                // Find the opening brace and insert version field right after it
+                var insertPattern = @"^(\s*\{)\s*$";
+                var replacement = "$1\n  \"version\": 1,";
+                var updatedContent = Regex.Replace(jsonContent, insertPattern, replacement, RegexOptions.Multiline);
+
+                // If the pattern didn't match (single-line opening), try a simpler approach
+                if (updatedContent == jsonContent)
+                {
+                    // Handle compact JSON: { "bomFormat": ... }
+                    if (jsonContent.TrimStart().StartsWith("{"))
+                    {
+                        var firstBraceIndex = jsonContent.IndexOf('{');
+                        updatedContent = jsonContent.Substring(0, firstBraceIndex + 1) +
+                                       "\n  \"version\": 1," +
+                                       jsonContent.Substring(firstBraceIndex + 1);
+                    }
+                }
+
+                // Write back to file if content changed
+                if (updatedContent != jsonContent)
+                {
+                    File.WriteAllText(SbomPath, updatedContent, Encoding.UTF8);
+                    Log.LogMessage(MessageImportance.Low, "[CycloneDX] Added version field to SBOM");
+                }
+                else
+                {
+                    Log.LogWarning("[CycloneDX] Could not add version field - unexpected JSON format");
+                }
             }
         }
         catch (Exception ex)
@@ -209,6 +219,14 @@
   <Target Name="IncludeCycloneDxSbomInPackage"
           BeforeTargets="GenerateNuspec"
           Condition="'$(GenerateCycloneDxSbom)' == 'true' AND '$(IsPackable)' != 'false'">
+    <PropertyGroup>
+      <!-- Recalculate output path in case it wasn't set -->
+      <CycloneDxOutputDirectory Condition="'$(CycloneDxOutputDirectory)' == ''">$(OutputPath)</CycloneDxOutputDirectory>
+      <CycloneDxOutputDirectory>$(CycloneDxOutputDirectory.TrimEnd('\').TrimEnd('/'))</CycloneDxOutputDirectory>
+      <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'json' OR '$(CycloneDxOutputFormat)' == ''">$(CycloneDxOutputFilename).json</_CycloneDxFullFilename>
+      <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'xml'">$(CycloneDxOutputFilename).xml</_CycloneDxFullFilename>
+      <CycloneDxOutputPath>$([System.IO.Path]::Combine('$(CycloneDxOutputDirectory)', '$(_CycloneDxFullFilename)'))</CycloneDxOutputPath>
+    </PropertyGroup>
     <ItemGroup>
       <None Include="$(CycloneDxOutputPath)" Pack="true" PackagePath="sbom/" Condition="Exists('$(CycloneDxOutputPath)')" />
     </ItemGroup>
@@ -217,17 +235,149 @@
 
   <Target Name="CopyCycloneDxSbomToPublishDirectory"
           AfterTargets="Publish"
-          Condition="'$(GenerateCycloneDxSbom)' == 'true' and '$(PublishDir)' != ''">
+          Condition="'$(PublishDir)' != ''">
+    <!-- Check if SBOM was enabled (either for this build or for outer build in multi-target scenario) -->
     <PropertyGroup>
-      <_CycloneDxPublishPath>$(PublishDir)$(_CycloneDxFullFilename)</_CycloneDxPublishPath>
+      <_CycloneDxShouldCopyToPublish Condition="'$(GenerateCycloneDxSbom)' == 'true' OR '$(_CycloneDxIsInnerBuild)' == 'true'">true</_CycloneDxShouldCopyToPublish>
     </PropertyGroup>
-    <Message Importance="normal" Text="[CycloneDX] Copying SBOM to publish directory..." />
+
+    <PropertyGroup Condition="'$(_CycloneDxShouldCopyToPublish)' == 'true'">
+      <!-- Recalculate output directory and paths in case they weren't set -->
+      <CycloneDxOutputDirectory Condition="'$(CycloneDxOutputDirectory)' == ''">$(OutputPath)</CycloneDxOutputDirectory>
+      <CycloneDxOutputDirectory>$(CycloneDxOutputDirectory.TrimEnd('\').TrimEnd('/'))</CycloneDxOutputDirectory>
+      <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'json' OR '$(CycloneDxOutputFormat)' == ''">$(CycloneDxOutputFilename).json</_CycloneDxFullFilename>
+      <_CycloneDxFullFilename Condition="'$(CycloneDxOutputFormat)' == 'xml'">$(CycloneDxOutputFilename).xml</_CycloneDxFullFilename>
+      <CycloneDxOutputPath>$([System.IO.Path]::Combine('$(CycloneDxOutputDirectory)', '$(_CycloneDxFullFilename)'))</CycloneDxOutputPath>
+      <_CycloneDxPublishPath>$([System.IO.Path]::Combine('$(PublishDir)', '$(_CycloneDxFullFilename)'))</_CycloneDxPublishPath>
+    </PropertyGroup>
+
+    <Message Condition="'$(_CycloneDxShouldCopyToPublish)' == 'true'" Importance="high" Text="[CycloneDX] Publish SBOM copy - OutputDir: $(CycloneDxOutputDirectory), OutputPath: $(CycloneDxOutputPath), PublishDir: $(PublishDir), Exists: $([System.IO.File]::Exists('$(CycloneDxOutputPath)'))" />
+    <Message Condition="'$(_CycloneDxShouldCopyToPublish)' == 'true'" Importance="normal" Text="[CycloneDX] Copying SBOM from $(CycloneDxOutputPath) to publish directory..." />
     <Copy SourceFiles="$(CycloneDxOutputPath)"
           DestinationFiles="$(_CycloneDxPublishPath)"
           SkipUnchangedFiles="true"
-          Condition="Exists('$(CycloneDxOutputPath)')" />
-    <Message Importance="high" Condition="Exists('$(CycloneDxOutputPath)')" Text="[CycloneDX] SBOM copied to publish directory: $(_CycloneDxPublishPath)" />
-    <Warning Condition="!Exists('$(CycloneDxOutputPath)')" Text="[CycloneDX] SBOM file not found at $(CycloneDxOutputPath). Ensure build was successful before publishing." />
+          Condition="'$(_CycloneDxShouldCopyToPublish)' == 'true' AND Exists('$(CycloneDxOutputPath)')" />
+    <Message Condition="'$(_CycloneDxShouldCopyToPublish)' == 'true' AND Exists('$(CycloneDxOutputPath)')" Importance="high" Text="[CycloneDX] SBOM copied to publish directory: $(_CycloneDxPublishPath)" />
+    <Warning Condition="'$(_CycloneDxShouldCopyToPublish)' == 'true' AND !Exists('$(CycloneDxOutputPath)')" Text="[CycloneDX] SBOM file not found at $(CycloneDxOutputPath). Ensure build was successful before publishing." />
+  </Target>
+
+  <!-- Optional: Validate generated SBOM against CycloneDX schema -->
+  <Target Name="ValidateCycloneDxSbom"
+          AfterTargets="GenerateCycloneDxSbom"
+          Condition="'$(CycloneDxValidateSbom)' == 'true' AND Exists('$(CycloneDxOutputPath)')">
+
+    <Message Importance="normal" Text="[CycloneDX] Validating SBOM against CycloneDX schema..." />
+
+    <!-- Check if cyclonedx-cli is available -->
+    <Exec
+      Command="npx --version"
+      ContinueOnError="true"
+      StandardOutputImportance="low"
+      StandardErrorImportance="low"
+      IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="_CycloneDxNpxAvailable" />
+    </Exec>
+
+    <Warning
+      Condition="'$(_CycloneDxNpxAvailable)' != '0'"
+      Text="[CycloneDX] npx not found. SBOM validation requires npm and @cyclonedx/cyclonedx-cli. Skipping validation." />
+
+    <!-- Validate SBOM using cyclonedx-cli -->
+    <Exec
+      Command="npx --yes @cyclonedx/cyclonedx-cli validate --input-file &quot;$(CycloneDxOutputPath)&quot;"
+      Condition="'$(_CycloneDxNpxAvailable)' == '0'"
+      ContinueOnError="$(CycloneDxContinueOnError)"
+      StandardOutputImportance="normal"
+      StandardErrorImportance="high">
+      <Output TaskParameter="ExitCode" PropertyName="_CycloneDxValidateExitCode" />
+    </Exec>
+
+    <Message
+      Importance="high"
+      Condition="'$(_CycloneDxValidateExitCode)' == '0'"
+      Text="[CycloneDX] SBOM validation passed successfully!" />
+
+    <Warning
+      Condition="'$(_CycloneDxValidateExitCode)' != '0' AND '$(CycloneDxContinueOnError)' == 'true'"
+      Text="[CycloneDX] SBOM validation failed. Build continuing due to CycloneDxContinueOnError=true" />
+
+    <Error
+      Condition="'$(_CycloneDxValidateExitCode)' != '0' AND '$(CycloneDxContinueOnError)' == 'false'"
+      Text="[CycloneDX] SBOM validation failed. Fix validation errors or set CycloneDxContinueOnError=true" />
+
+  </Target>
+
+  <!-- Optional: Check if SBOM needs regeneration (incremental build support) -->
+  <Target Name="CheckCycloneDxIncrementalBuild"
+          BeforeTargets="GenerateCycloneDxSbom"
+          Condition="'$(CycloneDxEnableIncrementalBuild)' == 'true' AND '$(GenerateCycloneDxSbom)' == 'true'">
+
+    <!-- Compute a hash of project dependencies to detect changes -->
+    <PropertyGroup>
+      <_CycloneDxDependenciesHash>$(MSBuildProjectFullPath).CycloneDxDependenciesHash</_CycloneDxDependenciesHash>
+      <_CycloneDxCurrentHash></_CycloneDxCurrentHash>
+    </PropertyGroup>
+
+    <!-- Get current project file and packages.lock.json modification times as a simple hash -->
+    <ItemGroup>
+      <_CycloneDxDependencyFiles Include="$(MSBuildProjectFullPath)" />
+      <_CycloneDxDependencyFiles Include="$(MSBuildProjectDirectory)/packages.lock.json" Condition="Exists('$(MSBuildProjectDirectory)/packages.lock.json')" />
+      <_CycloneDxDependencyFiles Include="$(MSBuildProjectDirectory)/obj/project.assets.json" Condition="Exists('$(MSBuildProjectDirectory)/obj/project.assets.json')" />
+    </ItemGroup>
+
+    <!-- Hash based on file modification times -->
+    <Hash ItemsToHash="@(_CycloneDxDependencyFiles)">
+      <Output TaskParameter="HashResult" PropertyName="_CycloneDxCurrentHash" />
+    </Hash>
+
+    <!-- Read previous hash if exists -->
+    <ReadLinesFromFile
+      File="$(_CycloneDxDependenciesHash)"
+      Condition="Exists('$(_CycloneDxDependenciesHash)')">
+      <Output TaskParameter="Lines" PropertyName="_CycloneDxPreviousHash" />
+    </ReadLinesFromFile>
+
+    <!-- Compare hashes -->
+    <PropertyGroup>
+      <_CycloneDxDependenciesChanged Condition="'$(_CycloneDxCurrentHash)' != '$(_CycloneDxPreviousHash)'">true</_CycloneDxDependenciesChanged>
+      <_CycloneDxDependenciesChanged Condition="'$(_CycloneDxCurrentHash)' == '$(_CycloneDxPreviousHash)'">false</_CycloneDxDependenciesChanged>
+      <_CycloneDxSbomExists Condition="Exists('$(CycloneDxOutputPath)')">true</_CycloneDxSbomExists>
+      <_CycloneDxSbomExists Condition="!Exists('$(CycloneDxOutputPath)')">false</_CycloneDxSbomExists>
+    </PropertyGroup>
+
+    <!-- Skip generation if dependencies haven't changed and SBOM exists -->
+    <PropertyGroup Condition="'$(_CycloneDxDependenciesChanged)' == 'false' AND '$(_CycloneDxSbomExists)' == 'true'">
+      <GenerateCycloneDxSbom>false</GenerateCycloneDxSbom>
+    </PropertyGroup>
+
+    <Message
+      Importance="normal"
+      Condition="'$(_CycloneDxDependenciesChanged)' == 'false' AND '$(_CycloneDxSbomExists)' == 'true'"
+      Text="[CycloneDX] Skipping SBOM generation - dependencies unchanged and SBOM exists" />
+
+    <Message
+      Importance="normal"
+      Condition="'$(_CycloneDxDependenciesChanged)' == 'true' OR '$(_CycloneDxSbomExists)' == 'false'"
+      Text="[CycloneDX] Dependencies changed or SBOM missing - will regenerate SBOM" />
+
+  </Target>
+
+  <!-- Save dependency hash after successful SBOM generation -->
+  <Target Name="SaveCycloneDxDependenciesHash"
+          AfterTargets="GenerateCycloneDxSbom"
+          Condition="'$(CycloneDxEnableIncrementalBuild)' == 'true' AND '$(_CycloneDxGenerateExitCode)' == '0'">
+
+    <PropertyGroup>
+      <_CycloneDxDependenciesHash>$(MSBuildProjectFullPath).CycloneDxDependenciesHash</_CycloneDxDependenciesHash>
+    </PropertyGroup>
+
+    <!-- Save current hash for next build -->
+    <WriteLinesToFile
+      File="$(_CycloneDxDependenciesHash)"
+      Lines="$(_CycloneDxCurrentHash)"
+      Overwrite="true"
+      Condition="'$(_CycloneDxCurrentHash)' != ''" />
+
   </Target>
 
 </Project>
