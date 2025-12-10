@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/dborgards/CycloneDX.MSBuild/compare/v1.3.0...v1.3.1) (2025-12-10)
+
+### 🐛 Bug Fixes
+
+* disable SBOM generation for CycloneDX.MSBuild project ([8d47fd5](https://github.com/dborgards/CycloneDX.MSBuild/commit/8d47fd50aabf0e57965750da9ae5e38d589f4591))
+* prevent file locking during parallel transitive builds ([3e14db6](https://github.com/dborgards/CycloneDX.MSBuild/commit/3e14db68edb537be1dbb45619d55673f0cc665ba))
+
 ## [1.3.0](https://github.com/dborgards/CycloneDX.MSBuild/compare/v1.2.1...v1.3.0) (2025-12-03)
 
 ### ✨ Features
