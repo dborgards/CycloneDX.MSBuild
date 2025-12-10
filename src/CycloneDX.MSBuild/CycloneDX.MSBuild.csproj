@@ -23,6 +23,8 @@
     <NoWarn>$(NoWarn);NU5128</NoWarn><!-- Suppress warning about missing lib folder -->
     <!-- Disable SBOM generation for this project to prevent transitive build issues -->
     <GenerateCycloneDxSbom>false</GenerateCycloneDxSbom>
+    <!-- Disable deps.json generation to prevent file locking during parallel builds -->
+    <GenerateDependencyFile>false</GenerateDependencyFile>
 
     <!-- Package Metadata -->
     <PackageReleaseNotes>
@@ -35,9 +37,6 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsTopLevelBuildProject)' != 'true'">
-    <!-- When this project is built transitively we isolate its output to avoid file locking -->
-    <CycloneDXParallelOutputRoot>$(MSBuildProjectDirectory)/bin/$(Configuration)/$(TargetFramework)/_references/$(MSBuildNodeId)/</CycloneDXParallelOutputRoot>
-    <OutputPath>$(CycloneDXParallelOutputRoot)</OutputPath>
     <!-- Skip package generation for dependency builds to prevent repeated pack operations -->
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
