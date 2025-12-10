@@ -21,6 +21,8 @@
     <DevelopmentDependency>true</DevelopmentDependency>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NoWarn>$(NoWarn);NU5128</NoWarn><!-- Suppress warning about missing lib folder -->
+    <!-- Disable SBOM generation for this project to prevent transitive build issues -->
+    <GenerateCycloneDxSbom>false</GenerateCycloneDxSbom>
 
     <!-- Package Metadata -->
     <PackageReleaseNotes>
