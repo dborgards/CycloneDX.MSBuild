@@ -96,10 +96,10 @@ public class MultiTargetProjectTests : IDisposable
         result.Success.Should().BeTrue("build should succeed");
 
         // Count how many times SBOM generation is mentioned in output
-        var generationCount = System.Text.RegularExpressions.Regex.Matches(
+        var generationCount = System.Text.RegularExpressions.Regex.Count(
             result.Output,
             "GenerateCycloneDxSbom",
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase).Count;
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
         // Should only generate once for outer build (not for each inner build)
         // Note: The exact count might vary based on MSBuild verbosity, but should not be 3+ (one per target)
