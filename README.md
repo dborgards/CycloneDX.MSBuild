@@ -135,6 +135,31 @@ All configuration is done via MSBuild properties. Set them in your `.csproj`, `D
 </PropertyGroup>
 ```
 
+#### Package Restore
+
+SBOM generation runs after `Build`, so the packages are already restored. By default the
+CycloneDX tool is therefore told not to restore again (`-dpr`).
+
+This matters for projects with conditional `PackageReference` items:
+
+```xml
+<ItemGroup>
+  <PackageReference Include="Microsoft.Data.SqlClient" Condition="'$(UseMs)' == 'true'" />
+  <PackageReference Include="System.Data.SqlClient" Condition="'$(UseMs)' != 'true'" />
+</ItemGroup>
+```
+
+A restore triggered by the tool does not see the properties the build was invoked with
+(for example `dotnet build -p:UseMs=true`), so the conditions resolve differently and the
+SBOM lists the wrong packages.
+
+```xml
+<PropertyGroup>
+  <!-- Let the CycloneDX tool run its own restore (default: true, restore disabled) -->
+  <CycloneDxDisablePackageRestore>false</CycloneDxDisablePackageRestore>
+</PropertyGroup>
+```
+
 #### Automatic Metadata Generation
 
 **New in v1.1.0**: CycloneDX.MSBuild now automatically extracts assembly and package metadata from your project properties and includes it in the generated SBOM. This eliminates the need for manual metadata templates in most cases.

@@ -129,6 +129,7 @@
       <_CycloneDxArgs Condition="'$(CycloneDxExcludeDev)' == 'true'">$(_CycloneDxArgs) -ed</_CycloneDxArgs>
       <_CycloneDxArgs Condition="'$(CycloneDxExcludeTestProjects)' == 'true'">$(_CycloneDxArgs) -t</_CycloneDxArgs>
       <_CycloneDxArgs Condition="'$(CycloneDxDisableSerialNumber)' == 'true'">$(_CycloneDxArgs) -ns</_CycloneDxArgs>
+      <_CycloneDxArgs Condition="'$(CycloneDxDisablePackageRestore)' == 'true'">$(_CycloneDxArgs) -dpr</_CycloneDxArgs>
       <_CycloneDxArgs Condition="'$(CycloneDxEnableGitHubLicenses)' == 'true'">$(_CycloneDxArgs) -egl</_CycloneDxArgs>
       <_CycloneDxArgs Condition="'$(CycloneDxGitHubUsername)' != ''">$(_CycloneDxArgs) -gu "$(CycloneDxGitHubUsername)"</_CycloneDxArgs>
       <_CycloneDxArgs Condition="'$(CycloneDxGitHubToken)' != ''">$(_CycloneDxArgs) -gt "$(CycloneDxGitHubToken)"</_CycloneDxArgs>

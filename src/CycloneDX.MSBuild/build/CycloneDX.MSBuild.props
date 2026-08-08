@@ -85,6 +85,15 @@
     <CycloneDxDisableSerialNumber Condition="'$(CycloneDxDisableSerialNumber)' == ''">false</CycloneDxDisableSerialNumber>
 
     <!--
+      Disable the package restore performed by the CycloneDX tool
+      The SBOM target runs after Build, so the restore is redundant. Worse, the tool's
+      restore does not see the properties the build was invoked with, so conditional
+      PackageReference items resolve differently and the SBOM lists the wrong packages.
+      Default: true
+    -->
+    <CycloneDxDisablePackageRestore Condition="'$(CycloneDxDisablePackageRestore)' == ''">true</CycloneDxDisablePackageRestore>
+
+    <!--
       Import metadata template path
       Optionally provide a metadata template which has project specific details
       Default: empty (no metadata import)

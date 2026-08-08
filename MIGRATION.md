@@ -81,6 +81,7 @@ dotnet build
 |------------------------|-------------------|-------|
 | `SbomGenerationManifestInfo` | `CycloneDxImportMetadataPath` | Import custom metadata |
 | N/A | `CycloneDxDisableSerialNumber` | Control SBOM serial number |
+| N/A | `CycloneDxDisablePackageRestore` | Skip the tool's redundant restore (default: `true`) |
 | N/A | `CycloneDxEnableGitHubLicenses` | Enable GitHub license resolution |
 | N/A | `CycloneDxToolVersion` | Pin specific tool version |
 
