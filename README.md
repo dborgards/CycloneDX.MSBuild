@@ -144,8 +144,8 @@ This matters for projects with conditional `PackageReference` items:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Microsoft.Data.SqlClient" Condition="'$(UseMs)' == 'true'" />
-  <PackageReference Include="System.Data.SqlClient" Condition="'$(UseMs)' != 'true'" />
+  <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" Condition="'$(UseMs)' == 'true'" />
+  <PackageReference Include="System.Data.SqlClient" Version="4.9.0" Condition="'$(UseMs)' != 'true'" />
 </ItemGroup>
 ```
 
@@ -153,9 +153,12 @@ A restore triggered by the tool does not see the properties the build was invoke
 (for example `dotnet build -p:UseMs=true`), so the conditions resolve differently and the
 SBOM lists the wrong packages.
 
+The default is `true`, which skips the tool's restore. Set it to `false` to let the
+CycloneDX tool run its own restore again:
+
 ```xml
 <PropertyGroup>
-  <!-- Let the CycloneDX tool run its own restore (default: true, restore disabled) -->
+  <!-- false = the CycloneDX tool performs its own restore (default: true = restore skipped) -->
   <CycloneDxDisablePackageRestore>false</CycloneDxDisablePackageRestore>
 </PropertyGroup>
 ```
