@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Serilog" Version="4.3.1" Condition="'$(UseSerilog)' == 'true'" />
+    <PackageReference Include="Serilog" Version="4.4.0" Condition="'$(UseSerilog)' == 'true'" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" Condition="'$(UseSerilog)' != 'true'" />
   </ItemGroup>
 
