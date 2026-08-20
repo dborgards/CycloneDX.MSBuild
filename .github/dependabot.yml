@@ -47,6 +47,29 @@ updates:
         patterns:
           - "*"
 
+  # Enable version updates for npm (semantic-release / commitlint toolchain)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "javascript"
+    commit-message:
+      prefix: "build"
+      prefix-development: "build"
+      include: "scope"
+    groups:
+      npm_and_yarn:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
   # Monitor the integration test projects
   - package-ecosystem: "nuget"
     directory: "/tests/Integration.Tests/SimpleProject"
