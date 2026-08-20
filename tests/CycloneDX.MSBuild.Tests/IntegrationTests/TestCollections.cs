@@ -25,6 +25,12 @@ public class DisabledProjectTestFixture
 {
 }
 
+// ConditionalDependencyProject tests - serialize to avoid file locking
+[CollectionDefinition("ConditionalDependencyProject")]
+public class ConditionalDependencyProjectTestFixture
+{
+}
+
 // Configuration tests can run in parallel with project-specific tests
 // but serialize among themselves
 [CollectionDefinition("Configuration")]
