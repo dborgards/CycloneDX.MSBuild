@@ -1,3 +1,9 @@
+## [1.3.2](https://github.com/dborgards/CycloneDX.MSBuild/compare/v1.3.1...v1.3.2) (2026-08-20)
+
+### 🐛 Bug Fixes
+
+* disable the CycloneDX tool's redundant package restore ([#70](https://github.com/dborgards/CycloneDX.MSBuild/issues/70)) ([9603fa1](https://github.com/dborgards/CycloneDX.MSBuild/commit/9603fa1d015613e8f8dbc7e0114bb2bec84bdee9)), closes [#68](https://github.com/dborgards/CycloneDX.MSBuild/issues/68)
+
 ## [1.3.1](https://github.com/dborgards/CycloneDX.MSBuild/compare/v1.3.0...v1.3.1) (2025-12-10)
 
 ### 🐛 Bug Fixes
