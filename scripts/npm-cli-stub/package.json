@@ -1,0 +1,7 @@
+{
+  "name": "npm",
+  "version": "10.9.9",
+  "description": "Local stub replacing the npm CLI pulled in by @semantic-release/npm. Releases publish NuGet via @semantic-release/exec, so the real CLI (and its bundled ip-address / undici) is unused.",
+  "private": true,
+  "main": "index.js"
+}

@@ -20,11 +20,13 @@
     "@semantic-release/github": "^12.0.9",
     "@semantic-release/release-notes-generator": "^14.1.1",
     "conventional-changelog-conventionalcommits": "^10.3.0",
+    "npm": "file:scripts/npm-cli-stub",
     "semantic-release": "^25.0.9"
   },
   "overrides": {
     "fast-uri": "4.1.2",
     "js-yaml": "5.3.0",
-    "undici@6": "6.28.0"
+    "undici@6": "6.28.0",
+    "npm": "$npm"
   }
 }
