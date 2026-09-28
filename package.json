@@ -11,13 +11,13 @@
     "semantic-release": "semantic-release"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.2.2",
+    "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.2",
     "@semantic-release/changelog": "^7.0.0",
     "@semantic-release/commit-analyzer": "^13.0.0",
     "@semantic-release/exec": "^7.0.0",
     "@semantic-release/git": "^11.0.1",
-    "@semantic-release/github": "^12.0.9",
+    "@semantic-release/github": "^12.0.10",
     "@semantic-release/release-notes-generator": "^14.1.1",
     "conventional-changelog-conventionalcommits": "^10.3.0",
     "npm": "file:scripts/npm-cli-stub",
