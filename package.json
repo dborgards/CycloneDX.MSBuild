@@ -25,7 +25,7 @@
   },
   "overrides": {
     "fast-uri": "4.1.2",
-    "js-yaml": "5.3.0",
+    "js-yaml": "5.4.1",
     "undici@6": "6.28.0",
     "npm": "$npm"
   }
