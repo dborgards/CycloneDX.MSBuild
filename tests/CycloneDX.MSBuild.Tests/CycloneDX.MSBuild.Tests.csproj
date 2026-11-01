@@ -57,6 +57,11 @@
       <BuildInParallel>false</BuildInParallel>
       <Properties>Configuration=$(Configuration)</Properties>
     </ProjectReference>
+    <ProjectReference Include="../Integration.Tests/ProjectReferenceProject/ProjectReferenceProject.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <BuildInParallel>false</BuildInParallel>
+      <Properties>Configuration=$(Configuration)</Properties>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
