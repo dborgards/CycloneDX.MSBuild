@@ -126,6 +126,24 @@ All configuration is done via MSBuild properties. Set them in your `.csproj`, `D
 </PropertyGroup>
 ```
 
+#### Project References
+
+By default only NuGet packages are listed as components. Two opt-in properties pass the
+matching switches to the CycloneDX tool:
+
+```xml
+<PropertyGroup>
+  <!-- List referenced projects as components (-ipr) -->
+  <CycloneDxIncludeProjectReferences>true</CycloneDxIncludeProjectReferences>
+
+  <!-- Also scan the package references of referenced projects (-rs) -->
+  <CycloneDxRecursive>true</CycloneDxRecursive>
+</PropertyGroup>
+```
+
+Both default to `false`. Plain assembly references (`<Reference Include="..." HintPath="..." />`)
+are still not covered, since the CycloneDX tool builds the SBOM from NuGet data only.
+
 #### Serial Number Control
 
 ```xml
@@ -372,7 +390,10 @@ The repository includes integration tests for various scenarios:
 tests/
 ├── SimpleProject/          # Basic single-target project
 ├── MultiTargetProject/     # Multi-targeting (.NET 6, 8, Standard 2.0)
-└── DisabledProject/        # Project with SBOM generation disabled
+├── DisabledProject/        # Project with SBOM generation disabled
+├── ConditionalDependencyProject/  # Conditional PackageReference items
+├── ProjectReferenceProject/       # Project reference to ReferencedLibrary
+└── ReferencedLibrary/             # netstandard2.0 library used as project reference
 ```
 
 ## 🔄 Versioning

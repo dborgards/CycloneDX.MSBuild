@@ -37,3 +37,9 @@ public class ConditionalDependencyProjectTestFixture
 public class ConfigurationTestFixture
 {
 }
+
+// ProjectReferenceProject tests - serialize to avoid file locking
+[CollectionDefinition("ProjectReferenceProject")]
+public class ProjectReferenceProjectTestFixture
+{
+}

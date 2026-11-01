@@ -74,6 +74,8 @@ dotnet build
 |------------------------|-------------------|-------|
 | N/A | `CycloneDxExcludeDev` | Exclude development dependencies |
 | N/A | `CycloneDxExcludeTestProjects` | Exclude test projects from SBOM |
+| N/A | `CycloneDxIncludeProjectReferences` | List project references as components (default: `false`) |
+| N/A | `CycloneDxRecursive` | Scan package references of referenced projects (default: `false`) |
 
 ### Advanced Options
 
