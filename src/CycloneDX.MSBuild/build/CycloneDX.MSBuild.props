@@ -79,6 +79,18 @@
     <CycloneDxExcludeTestProjects Condition="'$(CycloneDxExcludeTestProjects)' == ''">false</CycloneDxExcludeTestProjects>
 
     <!--
+      Include project references as components in the SBOM (-ipr)
+      Default: false (only NuGet packages are listed as components)
+    -->
+    <CycloneDxIncludeProjectReferences Condition="'$(CycloneDxIncludeProjectReferences)' == ''">false</CycloneDxIncludeProjectReferences>
+
+    <!--
+      Recursively scan project references for their package references (-rs)
+      Default: false
+    -->
+    <CycloneDxRecursive Condition="'$(CycloneDxRecursive)' == ''">false</CycloneDxRecursive>
+
+    <!--
       Disable SBOM serial number generation
       Default: false (serial number is auto-generated)
     -->

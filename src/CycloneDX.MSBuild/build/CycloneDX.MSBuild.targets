@@ -128,6 +128,8 @@
       <_CycloneDxArgs>$(_CycloneDxArgs) -F $(_CycloneDxOutputFormat)</_CycloneDxArgs>
       <_CycloneDxArgs Condition="'$(CycloneDxExcludeDev)' == 'true'">$(_CycloneDxArgs) -ed</_CycloneDxArgs>
       <_CycloneDxArgs Condition="'$(CycloneDxExcludeTestProjects)' == 'true'">$(_CycloneDxArgs) -t</_CycloneDxArgs>
+      <_CycloneDxArgs Condition="'$(CycloneDxIncludeProjectReferences)' == 'true'">$(_CycloneDxArgs) -ipr</_CycloneDxArgs>
+      <_CycloneDxArgs Condition="'$(CycloneDxRecursive)' == 'true'">$(_CycloneDxArgs) -rs</_CycloneDxArgs>
       <_CycloneDxArgs Condition="'$(CycloneDxDisableSerialNumber)' == 'true'">$(_CycloneDxArgs) -ns</_CycloneDxArgs>
       <_CycloneDxArgs Condition="'$(CycloneDxDisablePackageRestore)' == 'true'">$(_CycloneDxArgs) -dpr</_CycloneDxArgs>
       <_CycloneDxArgs Condition="'$(CycloneDxEnableGitHubLicenses)' == 'true'">$(_CycloneDxArgs) -egl</_CycloneDxArgs>
