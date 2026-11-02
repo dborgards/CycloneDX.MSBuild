@@ -1,5 +1,5 @@
 using CycloneDX.MSBuild.Tests.TestHelpers;
-using FluentAssertions;
+using AwesomeAssertions;
 using Xunit;
 
 namespace CycloneDX.MSBuild.Tests.IntegrationTests;
