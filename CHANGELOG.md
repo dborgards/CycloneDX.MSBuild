@@ -1,3 +1,13 @@
+## [1.4.0](https://github.com/dborgards/CycloneDX.MSBuild/compare/v1.3.2...v1.4.0) (2026-11-02)
+
+### ✨ Features
+
+* add CycloneDxIncludeProjectReferences and CycloneDxRecursive properties ([#112](https://github.com/dborgards/CycloneDX.MSBuild/issues/112)) ([e74c4f9](https://github.com/dborgards/CycloneDX.MSBuild/commit/e74c4f9565a1811da1fc66c7606fab22a9f38100))
+
+### 🐛 Bug Fixes
+
+* **release:** pin conventionalcommits preset to v9 so release notes render ([#114](https://github.com/dborgards/CycloneDX.MSBuild/issues/114)) ([52c1ee7](https://github.com/dborgards/CycloneDX.MSBuild/commit/52c1ee74900f6c8e283b715a6c2b0eab8a1b3cd2))
+
 ## [1.3.2](https://github.com/dborgards/CycloneDX.MSBuild/compare/v1.3.1...v1.3.2) (2026-08-20)
 
 ### 🐛 Bug Fixes
