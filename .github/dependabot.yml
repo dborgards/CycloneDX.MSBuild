@@ -69,6 +69,11 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # v10 needs conventional-changelog-writer 9, not yet supported by
+      # @semantic-release/release-notes-generator 14
+      - dependency-name: "conventional-changelog-conventionalcommits"
+        versions: [">=10"]
 
   # Monitor the integration test projects
   - package-ecosystem: "nuget"
