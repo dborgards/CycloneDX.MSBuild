@@ -29,7 +29,7 @@
       expression). Do not add FluentAssertions back.
     -->
     <PackageReference Include="AwesomeAssertions" Version="9.6.0" />
-    <PackageReference Include="System.Text.Json" Version="10.0.14" />
+    <PackageReference Include="System.Text.Json" Version="11.0.0" />
   </ItemGroup>
 
   <ItemGroup>
